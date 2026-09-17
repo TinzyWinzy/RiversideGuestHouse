@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from './firebase';
 import { ACCOMMODATION as FALLBACK_ROOMS, PROPERTY as FALLBACK_PROPERTY } from './property';
 
 export interface PropertyContent {
@@ -80,7 +78,10 @@ export function useProperty(): ContentState<PropertyContent> {
   });
   useEffect(() => {
     let alive = true;
-    getDoc(doc(db, 'settings', 'property'))
+    // Firebase loads lazily so the landing shell paints without the SDK.
+    import('./firebase')
+      .then(({ db }) => import('firebase/firestore').then((fs) => ({ db, fs })))
+      .then(({ db, fs }) => fs.getDoc(fs.doc(db, 'settings', 'property')))
       .then((snap) => {
         if (!alive) return;
         if (snap.exists()) setState({ data: mapProperty(snap.data()), loading: false, error: null, live: true });
@@ -105,7 +106,9 @@ export function useAccommodations(): ContentState<RoomContent[]> {
   });
   useEffect(() => {
     let alive = true;
-    getDocs(query(collection(db, 'accommodations'), where('active', '==', true)))
+    import('./firebase')
+      .then(({ db }) => import('firebase/firestore').then((fs) => ({ db, fs })))
+      .then(({ db, fs }) => fs.getDocs(fs.query(fs.collection(db, 'accommodations'), fs.where('active', '==', true))))
       .then((snap) => {
         if (!alive) return;
         const rooms = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<RoomContent, 'id'>) }));

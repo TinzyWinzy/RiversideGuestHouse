@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import {
   collection,
   doc,
@@ -36,7 +36,8 @@ const fmtDate = (v: unknown) => {
 export function Admin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState(() => auth.currentUser?.email ?? null);
+  const [user, setUser] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('enquiries');
   const [rows, setRows] = useState<Doc[]>([]);
@@ -60,7 +61,19 @@ export function Admin() {
       .finally(() => setBusy(false));
   };
 
-  useEffect(load, [tab, user]);
+  // Route guard: resolve auth before mounting any data reads (no permission-denied flash).
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u?.email ?? null);
+      setAuthReady(true);
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (authReady && user) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, authReady, user]);
 
   async function login(e: React.FormEvent) {
     e.preventDefault();
@@ -88,6 +101,7 @@ export function Admin() {
 
   async function doEnquiryAction(next: string) {
     if (!selected) return;
+    if ((next === 'CANCELLED' || next === 'COMPLETED') && !window.confirm(`${next} enquiry ${selected.id.slice(0, 8)}?`)) return;
     setBusy(true);
     setError(null);
     try {
@@ -102,6 +116,7 @@ export function Admin() {
 
   async function doConvert() {
     if (!selected) return;
+    if (!window.confirm(`Convert enquiry ${selected.id.slice(0, 8)} into a booking?`)) return;
     setBusy(true);
     setError(null);
     try {
@@ -119,7 +134,7 @@ export function Admin() {
   }
 
   async function doBookingAction(id: string, next: string) {
-    setBusy(true);
+    if ((next === 'CANCELLED' || next === 'NO_SHOW') && !window.confirm(`${next} booking ${id.slice(0, 8)}?`)) return;    setBusy(true);
     setError(null);
     try {
       await apiUpdateBookingStatus(id, next, note || undefined);
@@ -141,6 +156,15 @@ export function Admin() {
       setError(ex instanceof Error ? ex.message : 'Update failed.');
       setBusy(false);
     }
+  }
+
+  if (!authReady) {
+    return (
+      <main>
+        <h1>Management</h1>
+        <p>Checking sign-in…</p>
+      </main>
+    );
   }
 
   if (!user) {
@@ -191,7 +215,7 @@ export function Admin() {
       )}
 
       {tab === 'rooms' ? (
-        <table>
+        <table className="stacked">
           <thead><tr><th>Room</th><th>Rate</th><th>Active</th><th></th></tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -205,7 +229,7 @@ export function Admin() {
           </tbody>
         </table>
       ) : (
-        <table>
+        <table className="stacked">
           <thead><tr>
             <th>{tab === 'guests' ? 'Name' : 'Ref'}</th>
             <th>{tab === 'guests' ? 'Phone' : 'Status'}</th>

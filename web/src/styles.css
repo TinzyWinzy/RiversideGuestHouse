@@ -55,7 +55,40 @@ p { margin: 0.6rem 0; }
 ul { padding-left: 1.2rem; }
 
 a { color: var(--accent); }
-nav a { color: #fff; }
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff !important;
+  font-weight: 700;
+  padding: 0.8rem 1.4rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  min-height: 48px;
+}
+
+nav .cta {
+  background: #fff;
+  color: var(--brand) !important;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.success {
+  background: #e9f6ee;
+  border: 1px solid #9ed3b2;
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin-top: 1rem;
+}
+
+.danger { background: #a33; }
+button.danger { background: #a33; }
 
 a[href="/booking"], main > p > a[href="/booking"] {
   display: inline-block;
@@ -114,6 +147,14 @@ button:disabled { opacity: 0.6; cursor: wait; }
 table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 th, td { text-align: left; padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--line); }
 th { background: var(--wash); }
+
+/* Recompose tables into cards on small screens (admin lists). */
+@media (max-width: 35rem) {
+  table.stacked thead { display: none; }
+  table.stacked, table.stacked tbody, table.stacked tr, table.stacked td { display: block; width: 100%; }
+  table.stacked tr { border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 0.7rem; padding: 0.3rem 0.6rem; }
+  table.stacked td { border-bottom: 0; padding: 0.3rem 0; }
+}
 
 .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 
