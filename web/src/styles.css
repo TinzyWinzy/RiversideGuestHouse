@@ -1,12 +1,15 @@
 /* Riverside Guest House — mobile-first, no framework, system fonts for speed. */
 :root {
-  --ink: #14231a;
-  --muted: #5a6b60;
-  --brand: #0f2a1d;
-  --accent: #1e7a46;
+  --ink: #10233a;
+  --muted: #5a6b7a;
+  --brand: #09254c;
+  --accent: #01717a;
+  --gold: #e3c693;
+  --teal: #01abb3;
+  --cta: linear-gradient(to right, #e3c693 0%, #01abb3 100%);
   --paper: #ffffff;
-  --wash: #f2f6f3;
-  --line: #dfe7e1;
+  --wash: #f2f5f7;
+  --line: #dfe5ea;
   --radius: 10px;
 }
 
@@ -48,8 +51,8 @@ section {
   border-top: 1px solid var(--line);
 }
 
-h1 { font-size: 1.7rem; line-height: 1.2; margin: 0.5rem 0; }
-h2 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+h1 { font-size: 1.7rem; line-height: 1.2; margin: 0.5rem 0; color: var(--brand); }
+h2 { font-size: 1.25rem; margin: 0 0 0.5rem; color: var(--brand); }
 
 p { margin: 0.6rem 0; }
 ul { padding-left: 1.2rem; }
@@ -58,9 +61,9 @@ a { color: var(--accent); }
 
 .btn {
   display: inline-block;
-  background: var(--accent);
-  color: #fff !important;
-  font-weight: 700;
+  background: var(--cta);
+  color: var(--brand) !important;
+  font-weight: 800;
   padding: 0.8rem 1.4rem;
   border-radius: var(--radius);
   text-decoration: none;
@@ -80,8 +83,8 @@ nav .cta {
 }
 
 .success {
-  background: #e9f6ee;
-  border: 1px solid #9ed3b2;
+  background: #eaf7f8;
+  border: 1px solid #7fcdd2;
   border-radius: var(--radius);
   padding: 1.2rem;
   margin-top: 1rem;
@@ -123,7 +126,7 @@ button {
   min-height: 48px;
   border: 0;
   border-radius: var(--radius);
-  background: var(--accent);
+  background: var(--brand);
   color: #fff;
   cursor: pointer;
 }
