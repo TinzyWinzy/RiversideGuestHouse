@@ -15,6 +15,7 @@ export function Home() {
       {prop.loading || rooms.loading ? <p>Loading…</p> : null}
       <Notice error={prop.error ?? rooms.error} />
       <h1>{p.name}</h1>
+      <img src="/brand-banner.jpg" alt="Riverside Guest House Lodge — let us accommodate you. Stand 22418, Riverside Park, Ruwa." width="1080" height="523" loading="eager" />
       <p>Hotel comfort at guesthouse prices. {rooms.data.length > 0 ? fromPrice(rooms.data) : p.startingPriceText}. No hidden fees.</p>
       {p.description ? <p>{p.description}</p> : null}
       <p>

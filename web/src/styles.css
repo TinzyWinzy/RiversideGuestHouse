@@ -51,6 +51,8 @@ section {
   border-top: 1px solid var(--line);
 }
 
+img { max-width: 100%; height: auto; border-radius: var(--radius); }
+
 h1 { font-size: 1.7rem; line-height: 1.2; margin: 0.5rem 0; color: var(--brand); }
 h2 { font-size: 1.25rem; margin: 0 0 0.5rem; color: var(--brand); }
 

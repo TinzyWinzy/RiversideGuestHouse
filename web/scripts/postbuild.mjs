@@ -27,6 +27,7 @@ for (const [file, meta] of Object.entries(routes)) {
   html = html.replace(/<title>.*?<\/title>/, () => `<title>${meta.title}</title>`);
   html = html.replace(/(<meta name="description" content=")[^"]*(")/, (_m, p1, p2) => `${p1}${meta.desc}${p2}`);
   if (!html.includes('application/ld+json')) html = html.replace('</head>', `${jsonLd}</head>`);
+  html = html.replace(/(<meta property="og:image" content=")[^"]*(")/, (_m, p1, p2) => `${p1}${base}/brand-banner.jpg${p2}`);
   writeFileSync(join(dist, file), html);
 }
 
