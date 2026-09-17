@@ -10,6 +10,7 @@ export interface EnquiryPayload {
     partySize: number;
     longStay: boolean;
     message?: string;
+    source?: string;
   };
   idempotencyKey: string;
 }

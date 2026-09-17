@@ -110,7 +110,12 @@ export function Booking() {
         <div className="success" role="status">
           <h2>Enquiry received — ref {success.ref}</h2>
           <p>{success.room} · {success.dates} · {form.partySize} guest{form.partySize === 1 ? '' : 's'}</p>
-          <p>What happens next: management confirms availability and pricing on WhatsApp (usually same day).</p>
+          <p><strong>What happens next:</strong></p>
+          <ol>
+            <li>Now — tap below to send your enquiry on WhatsApp.</li>
+            <li>Within minutes — management confirms availability and pricing.</li>
+            <li>On arrival — show this chat at check-in. No hidden fees.</li>
+          </ol>
           <p><a className="btn" href={success.whatsappUrl}>Continue to WhatsApp</a></p>
         </div>
       )}

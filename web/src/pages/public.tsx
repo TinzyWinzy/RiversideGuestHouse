@@ -1,5 +1,6 @@
 import { PROPERTY as FALLBACK } from '../lib/property';
 import { fromPrice, useAccommodations, useProperty } from '../lib/content';
+import { buildDraftMessage, waLink } from '../lib/whatsapp';
 
 export function Notice({ error }: { error: string | null }) {
   if (!error) return null;
@@ -16,10 +17,11 @@ export function Home() {
       <Notice error={prop.error ?? rooms.error} />
       <h1>{p.name}</h1>
       <img src="/brand-banner.jpg" alt="Riverside Guest House Lodge — let us accommodate you. Stand 22418, Riverside Park, Ruwa." width="1080" height="523" loading="eager" />
-      <p>Hotel comfort at guesthouse prices. {rooms.data.length > 0 ? fromPrice(rooms.data) : p.startingPriceText}. No hidden fees.</p>
+      <p className="pricestrip">{rooms.data.length > 0 ? fromPrice(rooms.data) : p.startingPriceText} · Ruwa, off Mutare Road · No hidden fees</p>
       {p.description ? <p>{p.description}</p> : null}
       <p>
-        <a className="btn" href="/booking">Enquire now</a> · <a href={`https://wa.me/${p.whatsappNumber.replace('+', '')}`}>WhatsApp us</a>
+        <a className="btn" href="/booking">Book on WhatsApp</a>{' '}
+        <a href="/accommodation">View rooms</a>
       </p>
 
       <section>
@@ -75,6 +77,36 @@ export function Home() {
         <p>{p.addressText}. {p.navigationLandmarks}.</p>
         <p><a href="/location">Maps &amp; directions</a></p>
       </section>
+
+      <section>
+        <h2>Guest reviews</h2>
+        <p>No public reviews yet — stayed with us recently?</p>
+        <p><a href={`https://wa.me/${p.whatsappNumber.replace('+', '')}?text=${encodeURIComponent('Hello Riverside, I would like to leave a review of my stay.')}`} target="_blank" rel="noreferrer">Share your experience on WhatsApp</a></p>
+      </section>
+
+      <section>
+        <h2>Common questions</h2>
+        <details>
+          <summary>Is there power during load-shedding?</summary>
+          <p>Yes — the property has solar backup, so lights, WiFi and charging keep working.</p>
+        </details>
+        <details>
+          <summary>Is water reliable?</summary>
+          <p>Yes — prolific borehole water, plus hot showers.</p>
+        </details>
+        <details>
+          <summary>Is it safe and quiet enough for work calls?</summary>
+          <p>Yes — secure, spacious parking in an affluent Ruwa suburb, and quiet rooms suitable as a workspace.</p>
+        </details>
+        <details>
+          <summary>How do I check in?</summary>
+          <p>Self check-in. Management confirms your arrival details on WhatsApp after you enquire.</p>
+        </details>
+        <details>
+          <summary>What is the cancellation policy?</summary>
+          <p>Ask on WhatsApp when you enquire — the policy is confirmed with your booking. No hidden fees, ever.</p>
+        </details>
+      </section>
     </main>
   );
 }
@@ -92,10 +124,21 @@ export function Accommodation() {
         rooms.data.map((a) => (
           <section key={a.id}>
             <h2>{a.name} — US${a.rate}/night</h2>
-            {a.description ? <p>{a.description}</p> : <p>Details to be confirmed — photos, capacity and amenities coming soon.</p>}
-            {a.capacity ? <p>Sleeps {a.capacity}.</p> : null}
+            <p>{a.description ?? 'Comfortable, quiet room. Full details and photos coming soon.'}</p>
+            <p>
+              {a.capacity ? `Sleeps ${a.capacity} · ` : ''}US${a.rate}/night per room · Solar backup · WiFi · Secure parking
+            </p>
             {a.amenities.length > 0 ? <ul>{a.amenities.map((m) => <li key={m}>{m}</li>)}</ul> : null}
-            <p><a href="/booking">Enquire about {a.name}</a></p>
+            <p>
+              <a className="btn" href="/booking">Enquire about {a.name}</a>{' '}
+              <a
+                href={waLink(buildDraftMessage({ roomName: a.name, nightlyRate: a.rate, source: `Room: ${a.name}` }))}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ask on WhatsApp
+              </a>
+            </p>
           </section>
         ))
       )}

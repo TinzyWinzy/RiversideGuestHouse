@@ -32,8 +32,11 @@ export function normalizePhone(raw: string): string {
   return p;
 }
 
-export function buildWhatsappUrl(mgmtE164: string, ref: string, name: string, room: string, checkIn: string, checkOut: string, partySize: number, longStay: boolean): string {
+export function buildWhatsappUrl(mgmtE164: string, ref: string, name: string, room: string, checkIn: string, checkOut: string, partySize: number, longStay: boolean, nightlyRate?: number, source?: string): string {
   const num = mgmtE164.replace('+', '');
-  const text = `Hello Riverside Guest House,\n\nI would like to enquire about accommodation.\n\nRef: ${ref}\nName: ${name}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${partySize}\nRoom: ${room}\nLong stay: ${longStay ? 'Yes' : 'No'}\n\nPlease confirm availability and pricing.`;
+  const nights = Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86_400_000));
+  const total = nightlyRate !== undefined && nights > 0 ? `\nEstimated total: USD ${nights * nightlyRate} for ${nights} night${nights === 1 ? '' : 's'}` : '';
+  const attr = source ? `\n\n(Sent from: ${source})` : '';
+  const text = `Hello Riverside Guest House,\n\nI would like to enquire about accommodation.\n\nRef: ${ref}\nName: ${name}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${partySize}\nRoom: ${room}\nLong stay: ${longStay ? 'Yes (please share discount)' : 'No'}${total}\n\nPlease confirm availability and pricing.${attr}`;
   return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
 }

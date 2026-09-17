@@ -21,12 +21,25 @@ const jsonLd = `<script type="application/ld+json">${JSON.stringify({
   telephone: '+263774114599', priceRange: 'USD 20-30',
 })}</script>`;
 
+const faqLd = `<script type="application/ld+json">${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'Is there power during load-shedding?', acceptedAnswer: { '@type': 'Answer', text: 'Yes — the property has solar backup.' } },
+    { '@type': 'Question', name: 'Is water reliable?', acceptedAnswer: { '@type': 'Answer', text: 'Yes — prolific borehole water, plus hot showers.' } },
+    { '@type': 'Question', name: 'Is it safe and quiet enough for work calls?', acceptedAnswer: { '@type': 'Answer', text: 'Yes — secure parking in an affluent Ruwa suburb, quiet workspace-ready rooms.' } },
+    { '@type': 'Question', name: 'How do I check in?', acceptedAnswer: { '@type': 'Answer', text: 'Self check-in, with arrival details confirmed on WhatsApp.' } },
+    { '@type': 'Question', name: 'What is the cancellation policy?', acceptedAnswer: { '@type': 'Answer', text: 'Confirmed with your booking on WhatsApp. No hidden fees.' } },
+  ],
+})}</script>`;
+
 for (const [file, meta] of Object.entries(routes)) {
   if (file !== 'index.html') copyFileSync(join(dist, 'index.html'), join(dist, file));
   let html = readFileSync(join(dist, file), 'utf8');
   html = html.replace(/<title>.*?<\/title>/, () => `<title>${meta.title}</title>`);
   html = html.replace(/(<meta name="description" content=")[^"]*(")/, (_m, p1, p2) => `${p1}${meta.desc}${p2}`);
   if (!html.includes('application/ld+json')) html = html.replace('</head>', `${jsonLd}</head>`);
+  if (file === 'index.html' && !html.includes('FAQPage')) html = html.replace('</head>', `${faqLd}</head>`);
   html = html.replace(/(<meta property="og:image" content=")[^"]*(")/, (_m, p1, p2) => `${p1}${base}/brand-banner.jpg${p2}`);
   writeFileSync(join(dist, file), html);
 }

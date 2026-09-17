@@ -12,7 +12,7 @@ const MGMT_EMAIL = process.env.MGMT_NOTIFY_EMAIL ?? ''; // TBD — onNewEnquiryN
 
 interface CreateEnquiryPayload {
   guest: { name: string; phone: string; email?: string };
-  details: { accommodationId: string; checkIn: string; checkOut: string; partySize: number; longStay: boolean; message?: string };
+  details: { accommodationId: string; checkIn: string; checkOut: string; partySize: number; longStay: boolean; message?: string; source?: string };
   idempotencyKey: string;
 }
 
@@ -50,7 +50,7 @@ export const createEnquiry = onCall<CreateEnquiryPayload>({ enforceAppCheck: tru
   const existing = await db.collection('enquiries').where('idempotencyKey', '==', p.idempotencyKey).limit(1).get();
   if (!existing.empty) {
     const d = existing.docs[0];
-    return { enquiryId: d.id, whatsappUrl: buildWhatsappUrl(MGMT_WA, `ENQ-${d.id.slice(0, 8).toUpperCase()}`, p.guest.name, acc.name, checkIn, checkOut, partySize, longStay) };
+    return { enquiryId: d.id, whatsappUrl: buildWhatsappUrl(MGMT_WA, `ENQ-${d.id.slice(0, 8).toUpperCase()}`, p.guest.name, acc.name, checkIn, checkOut, partySize, longStay, acc.rate, p.details.source ?? 'Booking form') };
   }
 
   const now = admin.firestore.FieldValue.serverTimestamp();
@@ -64,12 +64,12 @@ export const createEnquiry = onCall<CreateEnquiryPayload>({ enforceAppCheck: tru
   const enqRef = db.collection('enquiries').doc();
   await enqRef.set({
     guestId: guestRef.id, accommodationId, checkIn, checkOut, partySize, longStay: !!longStay,
-    message: p.details.message ?? null, status: 'NEW', source: 'web',
+    message: p.details.message ?? null, status: 'NEW', source: p.details.source ?? 'Booking form',
     quotedRate: acc.rate, currency: acc.currency, quotedAt: now,
     idempotencyKey: p.idempotencyKey, createdAt: now, updatedAt: now,
   });
   const ref = `ENQ-${enqRef.id.slice(0, 8).toUpperCase()}`;
-  return { enquiryId: enqRef.id, whatsappUrl: buildWhatsappUrl(MGMT_WA, ref, p.guest.name, acc.name, checkIn, checkOut, partySize, longStay) };
+  return { enquiryId: enqRef.id, whatsappUrl: buildWhatsappUrl(MGMT_WA, ref, p.guest.name, acc.name, checkIn, checkOut, partySize, longStay, acc.rate, p.details.source ?? 'Booking form') };
 });
 
 export const updateEnquiryStatus = onCall(async (req) => {
