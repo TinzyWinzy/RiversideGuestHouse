@@ -1,0 +1,220 @@
+MVP Technical Specification v1.0: Riverside Guest House Digital Operations System
+
+1. System Architecture & Core Technology Stack
+
+This system employs a "serverless-first" architecture leveraging Vite, Firebase, and Vercel. This strategic stack is selected to achieve high availability and near-zero operational overhead, essential for a lean hospitality MVP. By utilizing managed services, we ensure that the infrastructure scales elastically with guest traffic while allowing the development focus to remain on the core business logic of guest acquisition and record management. The decoupling of the front-facing "Discovery" layer from the "Operational" management layer allows for optimized performance and security specific to each user's context.
+
+1.1. Frontend Framework & Rendering Strategy
+
+The frontend is implemented using Vite + React + TypeScript. To satisfy the critical SEO mandate for public-facing discovery, we employ a bifurcated rendering strategy:
+
+* Public Routes (/, /accommodation, /location): These routes utilize Static Site Generation (SSG) via vite-plugin-prerender or Vike. This ensures that the property profile, room rates, and facilities are available as crawlable HTML in the initial request, optimizing for Local SEO and performance on low-bandwidth mobile networks.
+* Management Dashboard (/admin/*): This is delivered as a dynamic Single Page Application (SPA). This surface is role-gated behind Firebase Auth and does not require pre-rendering, as its primary requirement is real-time state management for bookings and guest data.
+
+1.2. Backend-as-a-Service (Firebase)
+
+Firebase provides the comprehensive backend ecosystem:
+
+* Cloud Firestore: A NoSQL database providing real-time data synchronization.
+* Firebase Auth: Manages secure access using custom claims to differentiate between ADMIN, MANAGEMENT, and SYSTEM roles.
+* App Check: Integrated with reCAPTCHA v3 to secure the public enquiry endpoint, ensuring only legitimate traffic can trigger server-side functions.
+
+1.3. Hosting & CI/CD Layer (Vercel)
+
+Vercel handles the deployment pipeline, managing two distinct build outputs. It provides environment partitioning for production and preview branches, ensuring that configuration changes or content updates are validated before being exposed to the public guest funnel.
+
+1.4. Connective Tissue
+
+The architecture functions as a high-performance funnel: the SSG-driven frontend delivers the "Discovery" phase, while the transition to "Enquiry" and "Booking" is managed by Cloud Functions. This ensures that the heavy lifting of data validation and notification dispatching happens in a secure, server-side environment.
+
+2. Cloud Firestore Schema & Security Model
+
+A structured NoSQL schema is critical for maintaining the integrity of guest records and operational data. We implement the Rate Snapshot pattern across the enquiries and bookings collections. By persisting the quotedRate and currency at the moment of submission, we prevent "data drift." This ensures that historical financial records and guest expectations remain intact even if the primary accommodation rates are updated in the future.
+
+2.1. Primary Collection Schemas
+
+Collection	Field	Type	Description
+settings/property	name, description, location, facilities[], contactPhone, whatsappNumber, startingPriceText, navigationLandmarks	Object	Core business metadata. navigationLandmarks stores textual fallback directions (e.g., "Near KFC/Steers").
+accommodations	name, type, description, rate, currency, capacity, active, images[]	Document	Room types (Ensuite vs. Ordinary). active toggles public visibility; images[] stores URLs.
+guests	name, phone, email, notes	Document	Records keyed by phone number to prevent duplicates and enable re-engagement.
+enquiries	guestId, accommodationId, status, checkIn, checkOut, partySize, quotedRate, currency, quotedAt	Document	Capture records. status follows the enforced state machine.
+bookings	enquiryId, guestId, accommodationId, status, checkIn, checkOut, quotedRate, notes	Document	Confirmed stay records converted from enquiries.
+users	name, email, role	Document	Administrative records for ADMIN and MANAGEMENT roles.
+auditEvents	actorId, entityId, action, timestamp, metadata	Document	Immutable logs for tracking status changes and settings updates.
+
+2.2. Indexing Strategy
+
+While Firestore automatically indexes single fields, the management dashboard requires composite indexes to support performant filtering of active leads:
+
+* enquiries: status ASC, createdAt DESC. Required to filter by lead lifecycle (e.g., "NEW") while maintaining chronological order.
+* bookings: status ASC, checkIn DESC. Essential for operational visibility of upcoming vs. completed stays.
+
+2.3. Role-Based Access Control (RBAC)
+
+Security is enforced at the database level via Firestore Security Rules:
+
+* PUBLIC: Read-only access to settings/property and accommodations (where active == true). Write access is denied to all collections.
+* MANAGEMENT / ADMIN: Full read/write access to operational records.
+* SYSTEM: A service-level role for Cloud Functions, allowing them to bypass standard restrictions to upsert guest data and create enquiries after validation.
+
+2.4. Connective Tissue
+
+These schemas ensure that once a guest is quoted the standard US$20/night rate, that figure is locked into the enquiry document. If management later increases the rate in the accommodations collection, the specific enquiry and subsequent booking remain unchanged, providing an audit-ready financial trail.
+
+3. Cloud Functions API Contracts & Business Logic
+
+To protect against "dark funnel" lead loss and enforce strict server-side validation, all write operations are encapsulated within Cloud Functions. This ensures that no data enters the system without passing security checks and triggering necessary notifications.
+
+3.1. createEnquiry Contract
+
+This is the primary gateway for lead capture.
+
+TypeScript Specification:
+
+interface CreateEnquiryRequest {
+  guest: {
+    name: string;
+    phone: string;
+    email?: string;
+  };
+  details: {
+    accommodationId: string;
+    checkIn: string; // ISO format
+    checkOut: string;
+    partySize: number;
+    longStay: boolean;
+    message?: string;
+  };
+  appCheckToken: string;
+}
+
+interface CreateEnquiryResponse {
+  enquiryId: string;
+  whatsappUrl: string;
+}
+
+
+Business Logic:
+
+1. Validation: Verify App Check token and rate-limit by IP/Phone.
+2. Guest Upsert: Locate existing guest by phone or create new record.
+3. Snapshot: Retrieve current rate from accommodations and write to quotedRate.
+4. Handoff: Generate the wa.me URL with an ENQ-Ref for the frontend redirect.
+
+3.2. Lifecycle Management Functions
+
+All status updates must follow the enforced state machine to maintain data integrity.
+
+State Machine:
+
+* Enquiry: NEW → CONTACTED → PENDING → CONFIRMED → COMPLETED (or CANCELLED from any state).
+* Booking: PENDING → CONFIRMED → COMPLETED (or CANCELLED / NO_SHOW).
+
+Contract updateEnquiryStatus:
+
+interface UpdateStatusRequest {
+  enquiryId: string;
+  nextStatus: 'CONTACTED' | 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  notes?: string;
+}
+
+
+3.3. Notification Logic
+
+The onNewEnquiryNotify trigger monitors the enquiries collection. Upon creation, it dispatches an email to management. If the enquiry remains "NEW" for >2 hours, a secondary WhatsApp notification hook is triggered to prevent lead stagnation.
+
+3.4. Connective Tissue
+
+By centralizing logic in Cloud Functions, the database remains the single source of truth. Client-side failures cannot result in "ghost leads" where a guest reaches WhatsApp but management has no database record of the intent.
+
+4. WhatsApp Lead Generation & Funnel Integration
+
+We implement a "2-Step Lead Capture" strategy to solve the problem of anonymous WhatsApp inquiries. By forcing data persistence before the handoff, we ensure that the business retains the guest's name and email even if the guest fails to initiate the final chat message.
+
+4.1. The Lead Capture Workflow
+
+1. Form Capture: Guest submits stay details.
+2. Persistence: Cloud Function saves the record to Firestore.
+3. Redirection: The browser launches the pre-populated WhatsApp message.
+4. Re-engagement: If the lead is marked "NEW" but no WhatsApp contact is made, management uses the captured Email to re-engage the guest the following morning, a proven tactic for recovering stalled bookings.
+
+4.2. wa.me URL Constructor
+
+The URL must be encoded to include context-rich metadata. Template: https://wa.me/{mgmt_number}?text=Hello%20Riverside%2C%20I'm%20enquiring%20about%20staying.%20Ref:%20ENQ-{ID}%20|%20Name:%20{Name}%20|%20Dates:%20{Dates}%20|%20LongStay:%20{Yes/No}
+
+4.3. Connective Tissue
+
+This workflow bridges the gap between structured NoSQL records and the human-centric communication preferred by guests, ensuring every digital touchpoint is measurable.
+
+5. Precise Navigation & Google Maps Integration
+
+Standard street addresses in Ruwa often present a "Last Mile" challenge. We mitigate this by using Universal cross-platform URLs that target the entrance gate's exact coordinates.
+
+5.1. Universal URL Implementation
+
+The system generates navigation links using the following scheme: https://www.google.com/maps/dir/?api=1&destination=-17.92,31.24&destination_place_id=PLACE_ID Technical Requirement: The api=1 parameter is mandatory for the URL to function correctly across Android, iOS, and Web. The destination_place_id is required to display the property’s reviews and photos during the navigation launch.
+
+5.2. Fail-Safe Navigation
+
+In instances of low data connectivity, the system displays the navigationLandmarks field from settings/property. This provides textual fallbacks (e.g., "Turn at the KFC/Steers food court") to ensure the guest reaches the property gate.
+
+5.3. Connective Tissue
+
+By combining exact GPS pins with Google Business Profile Place IDs, we provide a professional "last mile" experience that eliminates navigation ambiguity for Mutare Road travelers.
+
+6. SEO, Pre-Rendering & Metadata Architecture
+
+A Single Page Application (SPA) is insufficient for discovery goals. We utilize Build-Time Pre-rendering (SSG) to ensure Riverside’s value proposition is visible to search engines.
+
+6.1. Build-Time Prerendering Rules
+
+Static HTML is generated for:
+
+* / (Home)
+* /accommodation (Catalogue)
+* /location (Maps/Directions)
+
+6.2. JSON-LD Structured Data
+
+To trigger Google's "rich snippets," we inject JSON-LD into the pre-rendered HTML:
+
+* LodgingBusiness: Defines room types and the US$20/night starting price.
+* LocalBusiness: Provides address, phone, and Ruwa-specific geo-coordinates.
+
+6.3. Metadata & Key Targets
+
+We target specific keyword clusters: "Guest House Ruwa," "Affordable accommodation near Mutare Road," and "Business ready workspace Zimbabwe." Metadata tags include Canonical, Open Graph, and Robots to control indexing.
+
+6.4. Connective Tissue
+
+These technical SEO measures ensure that when a guest searches for "rooms in Ruwa," Riverside appears with accurate, pre-indexed pricing and amenity data.
+
+7. Implementation Roadmap & Acceptance Gates
+
+The transition to production requires strict environment variable security and the population of authoritative property data.
+
+7.1. Environment Variables
+
+Variable	Target	Purpose
+VITE_FIREBASE_CONFIG	Vercel	Client-side project linkage.
+VITE_APP_CHECK_KEY	Vercel	reCAPTCHA v3 site key.
+MGMT_WA_NUMBER	Firebase	Destination for the wa.me links.
+RECAPTCHA_SECRET	Firebase	Server-side token validation.
+
+7.2. Seed Data & Build Sequence
+
+1. Initialize: Project setup on Vercel and Firebase.
+2. Schema: Deploy Security Rules and Composite Indexes.
+3. Seed: Populate settings/property (including landmarks) and accommodations (including the $20 base rate).
+4. Functions: Deploy createEnquiry and lifecycle logic.
+5. Build: Execute Vite SSG and deploy to production.
+
+7.3. MVP Technical Acceptance Tests
+
+* [ ] SEO Meta-tag Check: Verify via curl that raw HTML contains meta descriptions and JSON-LD.
+* [ ] Lead Capture: Verify enquiry is persisted in Firestore before the WhatsApp redirect.
+* [ ] Rate Integrity: Verify no automated "service fees" are injected; quotedRate must match the public price.
+* [ ] Security Gate: Verify that direct Firestore writes from the browser console are rejected.
+* [ ] Handoff Logic: Verify wa.me link contains the mandatory api=1 and correct ENQ-Ref.
+
+This document serves as the final technical blueprint for the implementation phase.

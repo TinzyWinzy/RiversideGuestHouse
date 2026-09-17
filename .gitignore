@@ -1,0 +1,17 @@
+# Dependency & build output — never commit.
+node_modules/
+web/node_modules/
+functions/node_modules/
+scripts/node_modules/
+web/dist/
+functions/lib/
+
+# Local secrets / environment (recreate from .env.example + deploy notes).
+web/.env.local
+functions/.env
+.env
+
+# OS / editor.
+.DS_Store
+Thumbs.db
+.vscode/

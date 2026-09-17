@@ -1,0 +1,134 @@
+MVP Technical Specification v1.1: Riverside Guest House Digital Operations System
+Date: 17 September 2026 | Status: Build-ready | Supersedes: v1.0 (ARCHITECTUREDOC.txt)
+Sources reconciled: prd.txt (PRD v1.2 + SAD v1.2) + ARCHITECTUREDOC.txt v1.0 + client values 17 Sep 2026.
+
+0. CHANGE LOG v1.0 -> v1.1
+- Locked real values: lat -17.876727, lng 31.228801, address "22418 Riverside Park, Ruwa Zimbabwe",
+  WhatsApp/management number +263774114599 (wa.me/263774114599), rates USD 20 Ordinary / USD 30 Ensuite per-room/night.
+- Fixed schema drift: v1.0 omitted amenities[], longStay, message, source, partySize (booking), currency (booking),
+  contactEmail, socialLinks{}, longStayMessage, createdAt/updatedAt, entityType. v1.1 is the union of PRD v1.2 + v1.0's
+  navigationLandmarks. Section 2 is normative.
+- Fixed state machine: v1.0 UpdateStatusRequest omitted PENDING/COMPLETED; booking had no contract. v1.1 adds
+  convertEnquiryToBooking + full transition guards (Section 3).
+- Maps: capesee dir searched 17 Sep 2026 — OBSERVATION: no Google Place ID (ChIJ...) exists there; capesee uses
+  coords-based `https://www.google.com/maps/search/?api=1&query={lat},{lng}` (PlaceHeader.tsx:18). v1.1 adopts
+  coords-primary navigation with optional placeId (nullable), so build is unblocked without a GBP Place ID.
+- Added: idempotencyKey, rate-limit thresholds, cron spec for stale-NEW nudge, audit create-only rule,
+  availability stance (FR-019), privacy gate (FR-020), per-room rate clarification.
+- Still TBD (non-blocking for schema, blocking for prod copy): contactEmail, mgmt notify email, placeId (optional),
+  room capacity/amenities/photos, check-in/out times, breakfast/extra-guest/deposit policy (ACC-006).
+
+1. ARCHITECTURE (LOCKED)
+Stack: Vite + React + TypeScript | Pre-rendered public routes (vite-plugin-prerender or Vike) for /, /accommodation,
+/location | SPA /admin/* | Firebase (Firestore, Auth + custom claims, Functions, App Check reCAPTCHA v3, Storage) |
+Vercel hosting (production + preview). Dev and prod use separate Firebase projects.
+Principle: WhatsApp is the communication channel; Firestore is the operational record. All writes via Cloud Functions;
+public client has zero direct writes. Funnel: Discover -> Enquire -> Capture -> Respond -> Book -> Manage.
+
+2. FIRESTORE SCHEMA (NORMATIVE)
+All docs carry createdAt/updatedAt (serverTimestamp) unless noted. Phone stored E.164. Dates ISO strings, checkOut > checkIn.
+
+settings/property (single doc):
+  name, description, location{addressText, lat, lng, placeId|null, searchUrl, dirUrl}, facilities[],
+  contactPhone, contactEmail|TBD, whatsappNumber, socialLinks{}, startingPriceText, longStayMessage|TBD,
+  navigationLandmarks, updatedAt
+  Seed: name "Riverside Guest House", addressText "22418 Riverside Park, Ruwa Zimbabwe", lat -17.876727, lng 31.228801,
+    placeId null, searchUrl "https://www.google.com/maps/search/?api=1&query=-17.876727,31.228801",
+    dirUrl "https://www.google.com/maps/dir/?api=1&destination=-17.876727,31.228801",
+    contactPhone "+263774114599", whatsappNumber "+263774114599",
+    startingPriceText "From US$20/night", navigationLandmarks "Near KFC/Steers food courts, Mutare Road, Ruwa".
+
+accommodations/{id}:
+  type [ensuite|ordinary], name, description|TBD, capacity|TBD, rate, currency "USD",
+  amenities[]|TBD, images[]|TBD, active, createdAt, updatedAt
+  Seed: ordinary-room {type ordinary, name "Ordinary Room", rate 20, currency USD, active true};
+        ensuite-room {type ensuite, name "Ensuite Room", rate 30, currency USD, active true}.
+  Public "from" price = min(rate) over active docs, never hard-coded.
+
+guests/{e164phone}:
+  name, phone, email?, notes, createdAt, updatedAt. Keyed by normalized phone to reduce duplicates.
+
+enquiries/{id}:
+  guestId, accommodationId, checkIn, checkOut, partySize, longStay bool, message, status,
+  source "web", quotedRate, currency, quotedAt, idempotencyKey, createdAt, updatedAt.
+  status: NEW|CONTACTED|PENDING|CONFIRMED|COMPLETED|CANCELLED.
+
+bookings/{id}:
+  enquiryId (unique, 0..1 per enquiry), guestId, accommodationId, checkIn, checkOut, partySize,
+  status [PENDING|CONFIRMED|COMPLETED|CANCELLED|NO_SHOW], notes, quotedRate, currency, createdAt, updatedAt.
+
+users/{uid}: name, email, role [ADMIN|MANAGEMENT], active, createdAt. Role mirrored to Auth custom claims.
+
+auditEvents/{id}: actorId, entityType, entityId, action, timestamp, metadata. Create-only, no update/delete.
+
+Relationships: accommodations 1--< enquiries/bookings; guests 1--< enquiries/bookings; enquiries 1--0..1 bookings;
+users 1--< auditEvents. References are plain ID fields (guestId, accommodationId, enquiryId).
+
+Indexes (firestore.indexes.json):
+  enquiries: status ASC + createdAt DESC. bookings: status ASC + checkIn DESC. Single-field active==true needs no composite.
+
+Rules summary (firestore.rules normative file):
+  settings/property, accommodations(active only): public read, no public write.
+  enquiries/bookings/guests: management+ read/write only; public create denied (must use createEnquiry function).
+  users: self-or-admin read, admin write. auditEvents: admin read, functions-only create.
+  UI gating is never sufficient; claims + rules + function checks enforce.
+
+3. CLOUD FUNCTIONS CONTRACTS
+3.1 createEnquiry(payload) -> {enquiryId, whatsappUrl}
+  In: guest{name, phone, email?}, details{accommodationId, checkIn, checkOut, partySize, longStay, message?},
+      idempotencyKey, appCheckToken.
+  Logic: verify App Check; rate-limit 5/IP/hr + 3/phone/hr (429 + optional captcha on abuse); validate E.164 phone,
+    checkOut>checkIn, partySize<=capacity, accommodation active; guest upsert in transaction (key = E.164 phone);
+    snapshot rate/currency/quotedAt from accommodations; create enquiry status NEW (idempotent on idempotencyKey);
+    build whatsappUrl server-side; dispatch onNewEnquiryNotify; return {enquiryId, whatsappUrl}.
+  TS types live in functions/src/enquiry.ts (to be scaffolded).
+3.2 convertEnquiryToBooking(enquiryId, overrides{checkIn?, checkOut?, partySize?, notes?}) -> {bookingId}
+  Guards: enquiry must be CONFIRMED or PENDING; exactly one booking per enquiryId (transaction); copies
+    guestId/accommodationId/dates/partySize + agreed quotedRate/currency (long-stay discount applied here manually for MVP).
+3.3 updateEnquiryStatus(enquiryId, nextStatus, notes?) — allowed:
+  NEW->CONTACTED|CANCELLED; CONTACTED->PENDING|CANCELLED; PENDING->CONFIRMED|CANCELLED;
+  CONFIRMED->COMPLETED|CANCELLED. All else rejected. Writes auditEvents.
+3.4 updateBookingStatus(bookingId, nextStatus, notes?) — allowed:
+  PENDING->CONFIRMED|CANCELLED; CONFIRMED->COMPLETED|CANCELLED|NO_SHOW. All else rejected. Writes auditEvents.
+3.5 onNewEnquiryNotify (onCreate enquiries): email to mgmt address immediately (olv: must survive failure — enquiry
+  persistence never depends on notification success). checkStaleEnquiries cron every 30 min: NEW older than 2h ->
+  WhatsApp nudge hook to mgmt number. NFR-010.
+
+4. WHATSAPP HANDOFF
+Server-built: https://wa.me/263774114599?text=<url-encoded>. Body template:
+  "Hello Riverside Guest House,\n\nI would like to enquire about accommodation.\n\nRef: ENQ-{shortId}\nName: {name}\n
+  Check-in: {d} Check-out: {d} Guests: {n} Room: {roomName} Long stay: {Yes/No}\n\nPlease confirm availability and pricing."
+Persist-before-redirect enforced; if WhatsApp unavailable, enquiry stays in Firestore and UI offers retry + manual
+"Message us: +263774114599" fallback. Never place email/phone in URL beyond message body (SAD 16).
+
+5. MAPS / NAVIGATION
+Primary (works today, per capesee pattern): searchUrl maps/search/?api=1&query=-17.876727,31.228801 and
+dirUrl maps/dir/?api=1&destination=-17.876727,31.228801. If a GBP placeId is supplied later, append
+&destination_place_id={placeId} to dirUrl to surface reviews/photos. Offline/low-data fallback: show
+navigationLandmarks text. Property model keeps placeId nullable so schema needs no migration when it arrives.
+
+6. SEO / RENDERING
+Pre-render /, /accommodation, /location at build; per-page title/meta/OG/Twitter/canonical; robots.txt + sitemap.xml;
+single LodgingBusiness JSON-LD (priceRange "USD 20-30", geo -17.876727/31.228801, phone +263774114599) — not duplicated
+LocalBusiness. Targets: "Guest House Ruwa", "Accommodation in Ruwa", "Rooms in Ruwa", "Guesthouse near Mutare Road".
+Gate: curl raw HTML must contain meta + JSON-LD; else SEO requirement unmet, do not ship.
+
+7. ENV + SEED + BUILD SEQUENCE
+Env: VITE_FIREBASE_CONFIG, VITE_APPCHECK_KEY (Vercel) | MGMT_WA_NUMBER=263774114599, RECAPTCHA_SECRET,
+  MGMT_NOTIFY_EMAIL|TBD (Firebase/Secret Manager). Sequence: 1) Firebase projects (dev/prod) + App Check.
+  2) Deploy firestore.rules + indexes. 3) Seed property + 2 accommodations + admin user. 4) Deploy functions.
+  5) Vite SSG build + Vercel deploy. 6) Run acceptance gates.
+Seed files: schema/seed.property.json, schema/seed.accommodations.json (rates 20/30 USD).
+
+8. ACCEPTANCE GATES (MVP COMPLETE PER PRD 15 + SAD 25)
+[ ] curl raw HTML has meta + LodgingBusiness JSON-LD on Home. [ ] Enquiry persists with quotedRate snapshot before
+WhatsApp redirect. [ ] Double-submit same idempotencyKey creates 1 doc. [ ] Direct console Firestore write rejected.
+[ ] quotedRate immutable after later rate change. [ ] wa.me contains 263774114599 + ENQ-Ref. [ ] Mgmt notified on new
+enquiry; enquiry survives notification failure. [ ] Stale NEW>2h triggers nudge job. [ ] Auth: unauth admin blocked;
+unsupported transitions rejected. [ ] No instant-confirmation copy anywhere (FR-019). [ ] Privacy policy published
+(FR-020). [ ] LCP <2.5s mobile; forms labelled/keyboard-navigable.
+
+9. DEFERRED (NOT MVP)
+Seasonal/occupancy rate tables, automated long-stay engine (manual agreed rate only), live inventory, deposits/payments,
+calendar sync, guest self-service, housekeeping, revenue dashboards, OTA, multi-property. Corporate/family events =
+accommodation-only via WhatsApp.

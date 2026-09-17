@@ -1,0 +1,1696 @@
+# RIVERSIDE GUEST HOUSE DIGITAL OPERATIONS SYSTEM
+
+## Product Requirements Document — PRD v1.2
+
+**Date:** 16 September 2026
+**Status:** Client Information Incorporated + Architecture-Aligned Revision
+**Version:** 1.2
+**Supersedes:** PRD v1.1
+
+---
+
+# 1. Document Control
+
+| Field         | Value                                                       |
+| ------------- | ----------------------------------------------------------- |
+| Product       | Riverside Guest House Digital Operations System             |
+| Version       | 1.2                                                         |
+| Status        | Client Information Incorporated + Architecture-Aligned      |
+| Business      | Riverside Guest House, Ruwa, Zimbabwe                       |
+| MVP Principle | Discover → Enquire → Capture → Respond → Book → Manage      |
+| Stack Baseline| Vite + React (frontend), Firebase (backend), Vercel (hosting)|
+
+---
+
+# 2. Source of Product Information
+
+This revision incorporates information supplied directly by Riverside Guest House management.
+
+The following property descriptions, facilities, target guest segments, pricing statements and operating claims are **client-provided source content**. They should therefore be treated as authoritative product input for the current specification, subject to later client confirmation or changes.
+
+---
+
+# 3. Client-Provided Property Profile
+
+Riverside Guest House is described by the client as follows:
+
+* Located in an affluent suburb in Ruwa.
+* Peaceful, business-ready and suitable as a dedicated workspace.
+* Quiet environment suitable for calls.
+* High-speed Wi-Fi.
+* Solar backup.
+* Secure and spacious parking.
+* Modern, well-furnished and comfortable ensuite rooms.
+* Ordinary rooms are also available.
+* Fresh linen and housekeeping.
+* Spotless bathrooms.
+* Hot showers.
+* Prolific borehole water.
+* Braai area.
+* Suitable for couples.
+* Suitable for singles.
+* Suitable for people passing through Mutare Road.
+* Suitable for corporate events.
+* Suitable for family gatherings and similar use cases.
+* Hotel comfort at guesthouse prices from **US$20/night**.
+* Discounts available for long stays.
+* Self check-in.
+* Transparent pricing.
+* No hidden fees — what the guest sees is what they pay.
+* Easily accessible.
+* Located near major food courts including KFC and Steers.
+
+---
+
+# 4. Product Overview
+
+The Riverside Guest House Digital Operations System is a **mobile-first guest acquisition and booking system**.
+
+The system combines:
+
+1. A public-facing digital experience for discovery and evaluation.
+2. Accommodation and pricing presentation.
+3. Structured booking enquiry capture.
+4. WhatsApp communication.
+5. A lightweight management interface.
+6. Structured guest and booking records.
+
+The public application is the **guest acquisition layer**.
+
+The management application is the **operational layer**.
+
+WhatsApp remains an important communication channel rather than being replaced.
+
+The fundamental workflow is:
+
+> **Discover → Enquire → Capture → Respond → Book → Manage**
+
+---
+
+# 5. Problem Statement
+
+Riverside Guest House needs a clear digital presence where prospective guests can:
+
+* Discover the property.
+* Understand the accommodation options.
+* Understand the facilities.
+* See the starting price.
+* Understand the location.
+* Request accommodation.
+* Contact Riverside through WhatsApp.
+
+At the same time, management needs structured records of enquiries and bookings instead of relying entirely on disconnected conversations.
+
+The system therefore needs to connect **digital discovery with actual guest acquisition and booking operations**.
+
+Additionally, management must not miss new enquiries, must not double-book, and must have a reliable operational record that survives beyond WhatsApp threads.
+
+---
+
+# 6. Business Goals
+
+The system should:
+
+* Make Riverside easy to discover online.
+* Clearly communicate the property's value proposition.
+* Clearly communicate accommodation options.
+* Present the starting price of US$20/night where applicable.
+* Communicate the transparent pricing proposition.
+* Generate structured booking enquiries.
+* Connect enquiries directly to WhatsApp.
+* Support long-stay enquiries.
+* Notify management of new enquiries promptly.
+* Give management a simple operational view of enquiries.
+* Create structured booking records.
+* Provide a foundation for future hospitality operations.
+
+---
+
+# 7. Primary Guest Segments
+
+| Segment                | Relevant Value Proposition                              |
+| ---------------------- | ------------------------------------------------------- |
+| Couples                | Comfortable furnished accommodation and ensuite options |
+| Singles                | Affordable accommodation from US$20/night               |
+| Business Travellers    | Quiet environment, workspace, Wi-Fi and solar backup    |
+| Mutare Road Travellers | Accessible Ruwa location for people passing through     |
+| Corporate Events       | Accommodation and gathering/event suitability           |
+| Families / Gatherings  | Accommodation, spacious parking and braai area          |
+
+**Note:** Corporate events and family gatherings are supported at the **accommodation** level for MVP. Dedicated event-space booking, catering, and event pricing are out of scope for MVP and handled manually via WhatsApp.
+
+---
+
+# 8. Accommodation & Pricing Requirements
+
+## ACC-001 — Multiple Accommodation Types
+
+The system must support multiple accommodation types, initially including:
+
+* Ensuite rooms
+* Ordinary rooms
+
+**Priority:** MUST
+
+For MVP, "ordinary room" is defined as a room without a private ensuite bathroom. Amenities, capacity, and rate must be configured per accommodation record.
+
+---
+
+## ACC-002 — Accommodation Details
+
+Each accommodation type should support:
+
+* Name
+* Description
+* Capacity
+* Facilities/amenities
+* Images
+* Active/inactive status
+* Configured price
+* Currency
+
+**Priority:** MUST
+
+---
+
+## ACC-003 — Starting Price
+
+The public system should display:
+
+> **From US$20/night**
+
+where this is applicable to the configured accommodation offering.
+
+**Priority:** MUST
+
+The system must not invent room rates that have not been configured or confirmed.
+
+The displayed "from" price should be derived from the lowest active configured rate, not hard-coded.
+
+---
+
+## ACC-004 — Long-Stay Discounts
+
+The system should support Riverside's long-stay proposition.
+
+Initially this can be implemented as:
+
+* A long-stay information section.
+* A "Long stay?" option in the enquiry form.
+* A request for management to provide/confirm the applicable discount.
+
+**Priority:** SHOULD
+
+A sophisticated automated discount engine is not required for MVP.
+
+---
+
+## ACC-005 — Transparent Pricing
+
+The public system should communicate the client's proposition:
+
+> **No hidden fees. What you see is what you pay.**
+
+The system should not silently introduce additional charges.
+
+**Priority:** MUST
+
+---
+
+## ACC-006 — Pricing Inclusions
+
+For MVP, the following must be defined by the client and reflected in the system:
+
+* What the US$20/night rate includes (per room or per person, single or double occupancy).
+* Whether breakfast is included.
+* Check-in and check-out times.
+* Whether extra guests incur additional charges.
+* Any refundable or non-refundable deposit expectation.
+
+**Priority:** MUST
+
+Where these are not yet confirmed, the public site must avoid implying inclusions that have not been stated.
+
+---
+
+## ACC-007 — Rate Snapshot
+
+When an enquiry is created and when a booking is confirmed, the system must store the applicable rate at that moment.
+
+Fields to persist:
+
+* `quotedRate`
+* `currency`
+* `quotedAt`
+
+This prevents later rate changes from silently altering historic records.
+
+**Priority:** MUST
+
+---
+
+# 9. Functional Requirements
+
+| ID     | Requirement                     | Priority |
+| ------ | ------------------------------- | -------- |
+| FR-001 | Public property profile         | MUST     |
+| FR-002 | Accommodation catalogue         | MUST     |
+| FR-003 | Accommodation details           | MUST     |
+| FR-004 | Pricing presentation            | MUST     |
+| FR-005 | Long-stay enquiry               | SHOULD   |
+| FR-006 | Location and directions         | MUST     |
+| FR-007 | Booking enquiry form            | MUST     |
+| FR-008 | WhatsApp handoff                | MUST     |
+| FR-009 | Enquiry management              | MUST     |
+| FR-010 | Booking records                 | MUST     |
+| FR-011 | Booking & enquiry status        | MUST     |
+| FR-012 | Guest records                   | SHOULD   |
+| FR-013 | Management authentication       | MUST     |
+| FR-014 | SEO                             | MUST     |
+| FR-015 | Contact/social channels         | SHOULD   |
+| FR-016 | Content configuration           | SHOULD   |
+| FR-017 | New enquiry notification        | MUST     |
+| FR-018 | Anti-spam / rate limiting       | MUST     |
+| FR-019 | Availability stance             | MUST     |
+| FR-020 | Privacy policy & data retention | MUST     |
+
+---
+
+# 10. Functional Requirement Details
+
+### FR-001 — Public Property Profile
+
+Guests must be able to view:
+
+* Riverside description
+* Facilities
+* Accommodation proposition
+* Starting price
+* Contact information
+* Key reasons to stay
+
+---
+
+### FR-002 — Accommodation Catalogue
+
+Guests must be able to see the available accommodation categories.
+
+Initial categories:
+
+* Ensuite
+* Ordinary rooms
+
+---
+
+### FR-003 — Accommodation Details
+
+Each accommodation type should provide:
+
+* Name
+* Description
+* Photos
+* Capacity
+* Relevant amenities
+* Price/rate
+* Booking/enquiry CTA
+
+---
+
+### FR-004 — Pricing Presentation
+
+The system should communicate the client's starting price:
+
+> **Accommodation from US$20/night**
+
+The exact price of each room should come from configured accommodation data.
+
+---
+
+### FR-005 — Long-Stay Enquiry
+
+The booking form should allow the guest to indicate that they are interested in a longer stay.
+
+Example:
+
+```text
+Are you staying for an extended period?
+
+[ ] Yes
+[ ] No
+```
+
+If selected, the enquiry should contain a `longStay` indicator.
+
+---
+
+### FR-006 — Location & Directions
+
+Guests should be able to:
+
+* View Riverside's location.
+* View a map.
+* Open directions.
+* See relevant location information.
+
+---
+
+### FR-007 — Booking Enquiry
+
+The booking enquiry form should capture:
+
+* Guest name
+* Phone number
+* Email where applicable
+* Check-in date
+* Check-out date
+* Number of guests
+* Accommodation type
+* Long-stay requirement
+* Additional message/requirements
+
+Server-side validation is required for all fields.
+
+---
+
+### FR-008 — WhatsApp Handoff
+
+After submitting an enquiry, the guest should be able to continue the conversation through WhatsApp.
+
+The WhatsApp handoff should contain relevant enquiry context.
+
+Example:
+
+```text
+Hello Riverside Guest House,
+
+I would like to enquire about accommodation.
+
+Name: John Doe
+Check-in: 24 September 2026
+Check-out: 27 September 2026
+Guests: 2
+Room: Ensuite
+Long stay: No
+
+Please confirm availability and pricing.
+```
+
+The enquiry must still be stored in the system independently of WhatsApp.
+
+The WhatsApp URL must be generated server-side so the message is consistent and does not expose sensitive guest data in the URL.
+
+---
+
+### FR-009 — Enquiry Management
+
+Management should be able to:
+
+* View enquiries.
+* Open an enquiry.
+* View guest details.
+* View requested dates.
+* View accommodation.
+* View enquiry source.
+* Update enquiry status.
+* Convert enquiry to booking.
+* Add internal notes.
+
+---
+
+### FR-010 — Booking Records
+
+Management should be able to convert an enquiry into a booking.
+
+A booking should retain:
+
+* Guest
+* Accommodation
+* Check-in
+* Check-out
+* Number of guests
+* Status
+* Notes
+* Original enquiry reference
+* Quoted rate snapshot
+* Currency
+
+---
+
+### FR-011 — Booking & Enquiry Status
+
+**Enquiry status:**
+
+```text
+NEW
+  ↓
+CONTACTED
+  ↓
+PENDING
+  ↓
+CONFIRMED
+  ↓
+COMPLETED
+```
+
+Cancellation:
+
+```text
+NEW → CANCELLED
+CONTACTED → CANCELLED
+PENDING → CANCELLED
+CONFIRMED → CANCELLED
+```
+
+**Booking status:**
+
+```text
+PENDING
+  ↓
+CONFIRMED
+  ↓
+COMPLETED
+```
+
+Cancellation and no-show:
+
+```text
+PENDING → CANCELLED
+CONFIRMED → CANCELLED
+CONFIRMED → NO_SHOW
+```
+
+The enquiry is the record of the **conversation**. The booking is the record of the **stay**. Only one booking may exist per enquiry.
+
+Unsupported transitions must be rejected server-side.
+
+---
+
+### FR-012 — Guest Records
+
+The system should retain guest contact information associated with enquiries and bookings.
+
+A guest record is keyed by phone number where possible, to reduce duplicates. Email is optional.
+
+---
+
+### FR-013 — Management Authentication
+
+Operational functions must require authentication.
+
+Guests should not have access to:
+
+* Guest records
+* Booking records
+* Management dashboard
+* Internal notes
+* Administrative configuration
+
+Roles for MVP:
+
+```text
+ADMIN
+MANAGEMENT
+```
+
+---
+
+### FR-014 — SEO
+
+Core public pages should contain indexable content covering:
+
+* Riverside Guest House
+* Ruwa
+* Accommodation
+* Guesthouse
+* Room types
+* Pricing
+* Relevant facilities
+* Location
+
+Public pages must be pre-rendered or server-rendered. A purely client-rendered SPA is not acceptable for the public site.
+
+---
+
+### FR-015 — Contact/Social Channels
+
+The system should provide configured access to:
+
+* WhatsApp
+* Phone
+* Email
+* Facebook
+* Maps/directions
+
+---
+
+### FR-016 — Content Configuration
+
+For MVP, the following must be editable without a code deployment:
+
+* Accommodation names, descriptions, amenities, images, active status.
+* Accommodation rates and currency.
+* Property description, facilities, contact details, social links.
+* Long-stay messaging.
+
+Admin UI or a documented admin path is required.
+
+---
+
+### FR-017 — New Enquiry Notification
+
+When a new enquiry is created, management must be notified promptly.
+
+For MVP, this should be:
+
+* An email to a configured management address, and
+* Optionally a WhatsApp notification to a configured management number.
+
+A silent dashboard that requires manual checking is not sufficient.
+
+---
+
+### FR-018 — Anti-Spam / Rate Limiting
+
+The public enquiry endpoint must be protected against abuse.
+
+Requirements:
+
+* App Check or equivalent on the public client.
+* Rate limiting per IP and per phone number.
+* Server-side validation.
+* Optional captcha challenge on suspicious submissions.
+
+---
+
+### FR-019 — Availability Stance
+
+For MVP, the system does **not** maintain live room inventory.
+
+This must be made clear:
+
+* The public site must not imply instant confirmation.
+* Enquiries are requests, not reservations.
+* Confirmation happens only after management responds.
+
+If automated availability is added later, it must be introduced as a distinct capability.
+
+---
+
+### FR-020 — Privacy Policy & Data Retention
+
+The system must:
+
+* Publish a privacy policy.
+* State what guest data is collected and why.
+* State retention rules.
+* Allow guests to request deletion where feasible.
+* Comply with applicable Zimbabwe data protection requirements.
+
+---
+
+# 11. Non-Functional Requirements
+
+| ID      | Requirement      | Target                                                              |
+| ------- | ---------------- | ------------------------------------------------------------------- |
+| NFR-001 | Mobile usability | Primary experience works well on smartphones (≥360px width)          |
+| NFR-002 | Performance      | Public pages LCP < 2.5s on typical mobile networks                  |
+| NFR-003 | Security         | Guest and booking data is protected server-side, not only in the UI |
+| NFR-004 | Data integrity   | Dates and booking states remain consistent; transitions enforced    |
+| NFR-005 | Resilience       | External failures don't lose enquiries                              |
+| NFR-006 | Privacy          | Only necessary guest information is collected                       |
+| NFR-007 | Auditability     | Material management changes record actor/time                       |
+| NFR-008 | Accessibility    | Forms labelled, keyboard navigable, WCAG 2.1 AA where practical    |
+| NFR-009 | SEO              | Public routes pre-rendered; sitemap and structured data present     |
+| NFR-010 | Availability     | Public enquiry submission must survive notification failures        |
+
+---
+
+# 12. MVP Public Experience
+
+The public application should contain:
+
+### Home
+
+* Riverside introduction
+* Strong accommodation proposition
+* "From US$20/night"
+* Transparent pricing proposition
+* Primary booking CTA
+
+### Accommodation
+
+* Ensuite rooms
+* Ordinary rooms
+* Room photos
+* Rates
+* Amenities
+* Capacity
+
+### Why Riverside
+
+* High-speed Wi-Fi
+* Solar backup
+* Quiet environment
+* Business-ready workspace
+* Secure spacious parking
+* Fresh linen
+* Housekeeping
+* Hot showers
+* Borehole water
+* Braai area
+
+### Who It's For
+
+* Couples
+* Singles
+* Business travellers
+* Mutare Road travellers
+* Corporate events (accommodation only)
+* Family gatherings (accommodation only)
+
+### Long Stays
+
+* Long-stay discount information
+* Enquiry CTA
+
+### Location
+
+* Ruwa location
+* Google Maps
+* Directions
+* Nearby food options including KFC and Steers
+
+### Booking / Enquiry
+
+Structured enquiry form + WhatsApp handoff.
+
+---
+
+# 13. Management Experience
+
+The management interface should initially contain:
+
+```text
+Login
+   ↓
+Dashboard
+   ├── Enquiries
+   ├── Bookings
+   ├── Guests
+   └── Accommodation
+```
+
+Management should be able to quickly answer:
+
+> Who wants to stay?
+
+> When do they want to stay?
+
+> What accommodation do they want?
+
+> How many people?
+
+> Have we responded?
+
+> Is it confirmed?
+
+---
+
+# 14. Core Data Model
+
+## Property (`settings/property`)
+
+```text
+name
+description
+location
+facilities[]
+contactPhone
+contactEmail
+whatsappNumber
+socialLinks{}
+startingPriceText
+longStayMessage
+updatedAt
+```
+
+## Accommodation (`accommodations/{id}`)
+
+```text
+id
+type                # ensuite | ordinary
+name
+description
+capacity
+rate
+currency
+amenities[]
+images[]
+active
+createdAt
+updatedAt
+```
+
+## Guest (`guests/{id}`)
+
+```text
+id
+name
+phone
+email
+notes
+createdAt
+updatedAt
+```
+
+## Enquiry (`enquiries/{id}`)
+
+```text
+id
+guestId
+accommodationId
+checkIn
+checkOut
+partySize
+longStay
+message
+status              # NEW | CONTACTED | PENDING | CONFIRMED | COMPLETED | CANCELLED
+source
+quotedRate
+currency
+quotedAt
+createdAt
+updatedAt
+```
+
+## Booking (`bookings/{id}`)
+
+```text
+id
+enquiryId
+guestId
+accommodationId
+checkIn
+checkOut
+partySize
+status              # PENDING | CONFIRMED | COMPLETED | CANCELLED | NO_SHOW
+notes
+quotedRate
+currency
+createdAt
+updatedAt
+```
+
+## User (`users/{uid}`)
+
+```text
+id
+name
+email
+role                # ADMIN | MANAGEMENT
+active
+createdAt
+```
+
+## Audit Event (`auditEvents/{id}`)
+
+```text
+id
+actorId
+entityType
+entityId
+action
+timestamp
+metadata
+```
+
+---
+
+# 15. MVP Acceptance Gate
+
+The MVP is complete when:
+
+1. A guest can discover Riverside.
+2. A guest can understand the accommodation offering.
+3. A guest can see the applicable starting price.
+4. A guest can understand Riverside's facilities.
+5. A guest can view the location.
+6. A guest can submit a structured enquiry.
+7. The enquiry is persisted with a rate snapshot.
+8. Management is notified of the new enquiry.
+9. The guest can continue through WhatsApp.
+10. Management can authenticate.
+11. Management can retrieve the enquiry.
+12. Management can update its status.
+13. Management can convert the enquiry into a booking.
+14. Unsupported state transitions are rejected.
+15. Public pages are indexable.
+16. A privacy policy is published.
+
+---
+
+# SOFTWARE ARCHITECTURE DOCUMENT
+
+## SAD v1.2
+
+**Date:** 16 September 2026
+**Status:** Client Information Incorporated + Architecture-Aligned
+**Version:** 1.2
+**Supersedes:** SAD v1.1
+
+---
+
+# 1. Architecture Intent
+
+The system should be a **small, maintainable operational platform**, not a full hotel-management system.
+
+The architecture must support:
+
+* Multiple room types.
+* Configurable accommodation.
+* Configurable pricing.
+* Long-stay enquiries.
+* Structured booking requests.
+* WhatsApp communication.
+* Guest records.
+* Management operations.
+* Management notifications.
+* Future expansion.
+
+The MVP should remain simple enough to build and operate without unnecessary infrastructure.
+
+---
+
+# 2. Proposed Technology Baseline
+
+Recommended baseline:
+
+```text
+Frontend Build:      Vite
+Frontend Framework:  React + TypeScript
+Public Rendering:    Pre-rendered / SSG (see Section 3)
+Hosting:             Vercel
+
+Backend Platform:    Firebase
+Database:            Cloud Firestore
+Authentication:      Firebase Auth (custom claims for roles)
+Storage:             Firebase Cloud Storage
+Server Logic:        Firebase Cloud Functions
+Spam Protection:     Firebase App Check (reCAPTCHA v3)
+Notifications:       Firebase Cloud Functions (email + optional WhatsApp)
+
+Maps:                Google Maps
+Communication:       WhatsApp (wa.me deep link)
+```
+
+The architecture should remain provider-flexible where practical.
+
+---
+
+# 3. SEO & Rendering Strategy (Critical)
+
+A plain Vite SPA is client-rendered and will **not** meet FR-014 reliably.
+
+Chosen approach for MVP:
+
+**Pre-render public routes at build time** using one of:
+
+* `vite-plugin-ssr` / Vike, or
+* A prerender plugin such as `vite-plugin-prerender` or `react-snap`, or
+* A separate static site generator for public pages, with Vite SPA only for the management dashboard.
+
+Requirements:
+
+* Public routes must produce static HTML at build time with meaningful content.
+* Metadata (title, description, Open Graph, canonical) must be present in the pre-rendered HTML.
+* `robots.txt` and `sitemap.xml` must be generated at build.
+* Structured data (`LodgingBusiness`, `LocalBusiness`) must be included on the Home page.
+
+If pre-rendering is not implemented, the SEO requirement is not met and the MVP should not ship as-is.
+
+---
+
+# 4. Logical Architecture
+
+```text
+                    ┌─────────────────────┐
+                    │        GUEST        │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │  VITE PUBLIC SITE   │
+                    │  (pre-rendered)     │
+                    │                     │
+                    │ Property            │
+                    │ Rooms               │
+                    │ Pricing             │
+                    │ Facilities          │
+                    │ Location            │
+                    │ Booking Enquiry     │
+                    └──────────┬──────────┘
+                               │
+                     ┌─────────┴─────────┐
+                     ▼                   ▼
+          ┌──────────────────┐   ┌──────────────────┐
+          │  FIRESTORE READ  │   │ createEnquiry    │
+          │  (public data)   │   │ Cloud Function   │
+          └──────────────────┘   └────────┬─────────┘
+                                          │
+                                          ▼
+                                ┌──────────────────┐
+                                │   FIRESTORE      │
+                                │                  │
+                                │ settings         │
+                                │ accommodations   │
+                                │ guests           │
+                                │ enquiries        │
+                                │ bookings         │
+                                │ users            │
+                                │ auditEvents      │
+                                └────────┬─────────┘
+                                         │
+                       ┌─────────────────┼──────────────────┐
+                       ▼                 ▼                  ▼
+                ┌──────────┐      ┌──────────┐      ┌───────────────┐
+                │ WhatsApp │      │  Email   │      │  Management   │
+                │  (link)  │      │ Notifier │      │   Dashboard   │
+                └──────────┘      └──────────┘      └───────────────┘
+```
+
+---
+
+# 5. System Components
+
+## 5.1 Public Web (Vite, pre-rendered)
+
+Responsible for:
+
+* Property presentation.
+* Accommodation.
+* Pricing.
+* Facilities.
+* Location.
+* SEO.
+* Booking enquiry form.
+* WhatsApp handoff.
+
+Public reads:
+
+* `settings/property`
+* `accommodations` where `active == true`
+
+Public writes:
+
+* None directly to Firestore. All writes go through the `createEnquiry` Cloud Function.
+
+---
+
+## 5.2 Management Web (Vite SPA)
+
+Responsible for:
+
+* Authentication.
+* Dashboard.
+* Enquiries.
+* Bookings.
+* Guests.
+* Accommodation.
+* Configuration.
+
+Management reads/writes:
+
+* Firestore, restricted by security rules and custom claims.
+
+---
+
+## 5.3 Firebase Cloud Functions
+
+Responsible for:
+
+* `createEnquiry` — validation, guest upsert, enquiry creation, rate snapshot, WhatsApp URL generation, notification dispatch.
+* `convertEnquiryToBooking` — creates a booking from an enquiry, enforces state rules.
+* `updateEnquiryStatus` — enforces allowed transitions, writes audit event.
+* `updateBookingStatus` — enforces allowed transitions, writes audit event.
+* `onNewEnquiryNotify` — trigger-based notification (email, optional WhatsApp).
+
+Functions enforce business rules that must not be bypassable from the client.
+
+---
+
+## 5.4 Firestore
+
+Responsible for persistent operational information.
+
+Primary collections:
+
+```text
+settings/property
+accommodations
+guests
+enquiries
+bookings
+users
+auditEvents
+```
+
+---
+
+# 6. Domain Model
+
+## Property
+
+Represents Riverside Guest House itself.
+
+Stored as a single document at `settings/property`. Contains:
+
+* Name
+* Description
+* Location
+* Facilities
+* Contact information
+* Pricing proposition
+* Long-stay proposition
+* Social links
+
+---
+
+## Accommodation
+
+Represents a room/accommodation category.
+
+Example:
+
+```text
+Ensuite Room
+Ordinary Room
+```
+
+Each accommodation record contains:
+
+```text
+name
+type
+description
+capacity
+amenities
+images
+rate
+currency
+active
+```
+
+---
+
+# 7. Rate Architecture
+
+Pricing should be **data-driven**.
+
+Rates should not be hard-coded throughout the frontend.
+
+For MVP, a simple nightly rate on each accommodation is sufficient:
+
+```text
+accommodations/{id}
+  rate: 20
+  currency: "USD"
+```
+
+The public interface may display:
+
+> **From US$20/night**
+
+provided that the corresponding rate has been configured.
+
+A separate rate collection (seasonal, occupancy-based, long-stay) is deliberately deferred.
+
+---
+
+# 8. Long-Stay Architecture
+
+MVP should **not** implement a complex discount engine.
+
+Instead:
+
+```text
+Guest
+  ↓
+Booking Enquiry
+  ↓
+longStay = true
+  ↓
+Management reviews
+  ↓
+Applicable discount confirmed
+  ↓
+Booking created with agreed quotedRate
+```
+
+Future versions can introduce:
+
+```text
+Long Stay Policy
+       ↓
+Number of nights
+       ↓
+Discount rule
+       ↓
+Calculated rate
+```
+
+This avoids unnecessary complexity in MVP.
+
+---
+
+# 9. Enquiry Architecture
+
+The enquiry process is:
+
+```text
+Guest
+ ↓
+Public Booking Form
+ ↓
+createEnquiry Cloud Function
+ ↓
+Validation
+ ↓
+App Check verification
+ ↓
+Rate limiting
+ ↓
+Guest create/update
+ ↓
+Enquiry created (with quotedRate snapshot)
+ ↓
+Notification dispatch (email + optional WhatsApp)
+ ↓
+Response returned (enquiryId + whatsappUrl)
+ ↓
+WhatsApp handoff (client opens link)
+ ↓
+Management Review
+ ↓
+Status transitions
+ ↓
+Booking
+```
+
+The important architectural principle is:
+
+> **WhatsApp is the communication channel; Firestore is the operational record.**
+
+---
+
+# 10. Booking State Model
+
+**Enquiry:**
+
+```text
+   NEW ──► CONTACTED ──► PENDING ──► CONFIRMED ──► COMPLETED
+
+   NEW ─────────────► CANCELLED
+   CONTACTED ───────► CANCELLED
+   PENDING ─────────► CANCELLED
+   CONFIRMED ───────► CANCELLED
+```
+
+**Booking:**
+
+```text
+   PENDING ──► CONFIRMED ──► COMPLETED
+
+   PENDING ────────────► CANCELLED
+   CONFIRMED ──────────► CANCELLED
+   CONFIRMED ──────────► NO_SHOW
+```
+
+Unsupported transitions must be rejected server-side.
+
+Only one booking may exist per enquiry.
+
+---
+
+# 11. Database Relationships
+
+```text
+settings/property     (single document)
+
+accommodations
+   │
+   ├──────< enquiries
+   └──────< bookings
+
+guests
+   │
+   ├──────< enquiries
+   └──────< bookings
+
+enquiries
+   │
+   └────── 0..1 bookings
+
+users
+   │
+   └──────< auditEvents
+```
+
+In Firestore, these relationships are represented by document reference fields (e.g. `enquiries/{id}.guestId`, `enquiries/{id}.accommodationId`, `bookings/{id}.enquiryId`).
+
+Composite indexes required:
+
+* `accommodations`: `active == true` (single-field is enough).
+* `enquiries`: `status ASC, createdAt DESC`.
+* `bookings`: `status ASC, checkIn DESC`.
+
+---
+
+# 12. API Boundaries
+
+Because this is Firebase, "API" means Cloud Function callable functions and Firestore access governed by security rules.
+
+## Public
+
+```text
+Firestore reads:
+  GET settings/property
+  GET accommodations where active == true
+
+Cloud Functions (callable):
+  createEnquiry(payload) → { enquiryId, whatsappUrl }
+```
+
+## Management (authenticated, role-gated)
+
+```text
+Firestore reads/writes:
+  enquiries, bookings, guests, accommodations
+
+Cloud Functions (callable):
+  convertEnquiryToBooking(enquiryId, overrides)
+  updateEnquiryStatus(enquiryId, nextStatus, notes?)
+  updateBookingStatus(bookingId, nextStatus, notes?)
+```
+
+## Notifications
+
+```text
+Cloud Function triggers:
+  onNewEnquiryNotify (Firestore onCreate on enquiries)
+```
+
+---
+
+# 13. Authentication & Authorization
+
+Operational functionality requires authentication.
+
+Minimum MVP roles:
+
+```text
+ADMIN
+MANAGEMENT
+```
+
+Roles are stored as Firebase Auth **custom claims** (`role`) and mirrored in `users/{uid}` for display.
+
+The architecture should allow additional roles later:
+
+```text
+STAFF
+HOUSEKEEPING
+MANAGER
+ADMIN
+```
+
+Authorization must be enforced at the server/database level via:
+
+* Firestore security rules, and
+* Cloud Function checks on callable functions.
+
+UI restrictions alone are insufficient.
+
+---
+
+# 14. Security
+
+The system must:
+
+* Use HTTPS (Vercel and Firebase provide this by default).
+* Validate all submitted data server-side.
+* Keep secrets server-side (Firebase Secret Manager / environment config).
+* Protect guest information.
+* Protect management routes.
+* Prevent public access to operational records.
+* Use Firestore security rules as the primary database-level access control.
+* Use Firebase App Check on the public client.
+* Apply rate limiting on `createEnquiry`.
+* Record material management changes in `auditEvents`.
+* Avoid exposing unnecessary guest information in URLs.
+* Establish data retention rules before production.
+
+### Firestore rules summary
+
+```text
+settings/property          read: public | write: admin
+accommodations             read: public (active only) | write: management+
+enquiries                  read/write: management+ | create: denied to public
+bookings                   read/write: management+
+guests                     read/write: management+
+users                      read: self or admin | write: admin
+auditEvents                read: admin | write: functions only
+```
+
+Public enquiry creation happens only through the `createEnquiry` Cloud Function.
+
+---
+
+# 15. Privacy
+
+The system should only collect information required for:
+
+* Enquiry.
+* Booking.
+* Guest communication.
+* Operational management.
+
+Guest information collected:
+
+```text
+Name
+Phone
+Email (optional)
+Booking dates
+Number of guests
+Accommodation requested
+Guest message
+Long-stay preference
+```
+
+Additional information should only be collected when operationally justified.
+
+A public privacy policy is required before production.
+
+---
+
+# 16. WhatsApp Integration
+
+The WhatsApp integration provides a bridge between structured system data and human communication.
+
+The `createEnquiry` Cloud Function returns a `whatsappUrl`:
+
+```text
+https://wa.me/<managementNumber>?text=<url-encoded-context>
+```
+
+Example context:
+
+```text
+Hello Riverside Guest House,
+
+I would like to enquire about accommodation.
+
+Ref: ENQ-2026-0001
+Name: John Doe
+Check-in: 24 September 2026
+Check-out: 27 September 2026
+Guests: 2
+Room: Ensuite
+Long stay: No
+
+Please confirm availability and pricing.
+```
+
+If WhatsApp is unavailable or the user does not continue to WhatsApp, the enquiry remains stored in Firestore.
+
+Sensitive guest data (email, phone) must not be placed in the URL beyond what the message itself contains.
+
+---
+
+# 17. Google Maps Integration
+
+Maps should provide:
+
+* Riverside location.
+* Map display.
+* Directions.
+
+The system should maintain a textual address/location representation so the application remains useful if Maps is temporarily unavailable.
+
+---
+
+# 18. SEO Architecture
+
+SEO must be built into the public application rather than added after development.
+
+Requirements:
+
+* Pre-rendered HTML for public routes.
+* Per-page `<title>` and meta description.
+* Open Graph and Twitter card metadata.
+* Canonical URLs.
+* `sitemap.xml` and `robots.txt`.
+* Structured data: `LodgingBusiness`, `LocalBusiness`, `Accommodation` where applicable.
+* Image alt text.
+* Fast LCP on mobile.
+
+Important indexable concepts include:
+
+```text
+Riverside Guest House
+Guest House Ruwa
+Accommodation in Ruwa
+Affordable accommodation in Ruwa
+Guesthouse near Mutare Road
+Business accommodation Ruwa
+Rooms in Ruwa
+```
+
+The exact SEO keyword strategy can be refined separately.
+
+---
+
+# 19. Content Architecture
+
+Client-provided content should be represented as editable/configurable content where practical.
+
+### Property (`settings/property`)
+
+* Property description.
+* Location.
+* Contact details.
+* Facilities.
+* Long-stay message.
+* Social links.
+
+### Accommodation (`accommodations`)
+
+* Room name.
+* Description.
+* Photos.
+* Amenities.
+* Capacity.
+* Rate and currency.
+* Active flag.
+
+### Value Proposition
+
+* Hotel comfort at guesthouse prices.
+* From US$20/night.
+* Long-stay discounts.
+* No hidden fees.
+* Self check-in.
+
+### Facilities
+
+* Wi-Fi.
+* Solar backup.
+* Workspace.
+* Parking.
+* Housekeeping.
+* Fresh linen.
+* Hot showers.
+* Borehole water.
+* Braai area.
+
+---
+
+# 20. Deployment Architecture
+
+```text
+Git Repository
+      │
+      ├──► Vercel  (Vite frontend build + pre-render)
+      │        ├── Production
+      │        └── Preview Deployments
+      │
+      └──► Firebase
+               ├── Cloud Firestore
+               ├── Firebase Auth
+               ├── Cloud Storage
+               ├── Cloud Functions
+               └── App Check
+```
+
+Environment-specific secrets should be used.
+
+Development and production data must be separated (separate Firebase projects recommended).
+
+Firestore security rules and indexes should be version-controlled alongside the code.
+
+---
+
+# 21. Observability
+
+MVP should provide:
+
+* Firebase Functions logging.
+* Firestore error monitoring.
+* Audit events in `auditEvents`.
+* Basic enquiry metrics.
+* Basic booking metrics.
+* Health checks for critical functions.
+
+Future analytics can measure:
+
+```text
+Visitors
+   ↓
+Enquiries
+   ↓
+WhatsApp conversations
+   ↓
+Confirmed bookings
+   ↓
+Completed stays
+```
+
+---
+
+# 22. Backup & Recovery
+
+Firestore should use managed backups.
+
+Before the system becomes business-critical:
+
+1. Backups must be enabled.
+2. Restoration must be tested.
+3. Cloud Storage media recovery should be considered.
+4. Recovery procedures should be documented.
+
+---
+
+# 23. Architecture Decisions
+
+| Decision                                          | Reason                                                                |
+| ------------------------------------------------- | --------------------------------------------------------------------- |
+| Firestore over relational DB                       | Fits Firebase stack; MVP relationships are simple                     |
+| Configurable accommodation                        | Riverside has multiple accommodation types                            |
+| Rate on accommodation, not a separate collection  | Sufficient for MVP; avoids premature complexity                       |
+| Long-stay enquiry rather than discount engine     | Supports the business requirement without unnecessary MVP complexity  |
+| WhatsApp as communication layer                   | Preserves the existing human workflow                                 |
+| Firestore as operational source of record         | Prevents WhatsApp conversations from being the only record            |
+| Cloud Functions for writes                        | Enforces validation, rate limiting, and state transitions server-side |
+| Pre-rendered public Vite pages                    | Meets SEO requirement; plain SPA does not                             |
+| Single property initially                         | Matches current business scope                                        |
+| Public + management surfaces                      | Separates customer acquisition from operations                        |
+| App Check + rate limiting                         | Protects the public enquiry endpoint                                  |
+| Email notification on new enquiry                 | Prevents missed enquiries                                             |
+
+---
+
+# 24. Future Extensions
+
+The architecture should leave room for:
+
+* Automated availability.
+* Online deposits.
+* Online payments.
+* Automated long-stay discounts.
+* Calendar synchronisation.
+* Guest self-service.
+* Staff accounts.
+* Housekeeping management.
+* Automated WhatsApp notifications.
+* Email notifications.
+* Revenue dashboards.
+* Occupancy reporting.
+* OTA/channel integrations.
+* Multi-property management.
+
+---
+
+# 25. MVP Technical Completion Gate
+
+The system is technically ready for MVP production when the following work together:
+
+```text
+PUBLIC EXPERIENCE (pre-rendered)
+        ↓
+Property
+Accommodation
+Pricing
+Facilities
+Location
+        ↓
+createEnquiry (Cloud Function)
+        ↓
+FIRESTORE
+        ↓
+NOTIFICATION
+        ↓
+WHATSAPP
+        ↓
+MANAGEMENT DASHBOARD
+        ↓
+ENQUIRY
+        ↓
+BOOKING
+        ↓
+COMPLETION
+```
+
+The MVP must have:
+
+* Public property pages (pre-rendered).
+* Accommodation catalogue.
+* Configurable rates.
+* Structured enquiry capture with rate snapshot.
+* Guest records.
+* Management notification on new enquiry.
+* WhatsApp handoff.
+* Authenticated management.
+* Enquiry management with enforced state transitions.
+* Booking management with enforced state transitions.
+* Location/Maps.
+* SEO foundations (pre-render, sitemap, structured data).
+* Security controls (Auth, custom claims, Firestore rules, App Check, rate limiting).
+* Firestore persistence.
+* Basic logging and audit events.
+* Privacy policy.
+* Production deployment.
+
+---
+
+## The next engineering artifact
+
+With **PRD v1.2 + SAD v1.2**, we now have enough to move into the actual build specification.
+
+The next document should be:
+
+**MVP Technical Specification v1.0 — Vite + Firebase + Vercel Edition**
+
+That should define:
+
+* Firestore collection schemas, indexes, and security rules.
+* Cloud Functions contracts and triggers.
+* Vite route structure, component tree, and pre-render strategy.
+* Firebase Auth custom claims and role management.
+* WhatsApp link builder.
+* Environment variables for Vercel and Firebase.
+* Seed data for property, rooms, and rates.
+* Notification implementation (email + optional WhatsApp).
+* Exact MVP build sequence and acceptance tests.
+
+That is the document to use as the direct bridge from architecture → code.
+

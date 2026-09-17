@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return request.auth.token.role; }
+    function isManager() { return signedIn() && (role() == 'ADMIN' || role() == 'MANAGEMENT'); }
+    function isAdmin() { return signedIn() && role() == 'ADMIN'; }
+
+    // Public discovery reads. No public writes.
+    match /settings/property {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /accommodations/{id} {
+      allow read: if resource.data.active == true || isManager();
+      allow create, update, delete: if isManager();
+    }
+
+    // Operational records: management only. Public creates via createEnquiry function.
+    match /enquiries/{id} {
+      allow read, update, delete: if isManager();
+      allow create: if false;
+    }
+    match /bookings/{id} {
+      allow read, write: if isManager();
+    }
+    match /guests/{id} {
+      allow read, write: if isManager();
+    }
+
+    // Users: self-or-admin read, admin write.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Audit: admin read, no direct client writes (functions use Admin SDK).
+    match /auditEvents/{id} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+  }
+}
