@@ -1,6 +1,7 @@
 // Canonical property constants (mirror schema/seed.property.json). Single source for UI copy.
 export const PROPERTY = {
   name: 'Riverside Guest House',
+  description: 'Riverside is the house at the halfway point on the road between Harare and Mutare. Lights that stay on through load-shedding, water that never stops, secure parking, and a real person on WhatsApp to confirm your booking. The rate you are quoted is the rate you pay — nothing more, ever.',
   addressText: '22418 Riverside Park, Ruwa Zimbabwe',
   lat: -17.876727,
   lng: 31.228801,
@@ -10,7 +11,7 @@ export const PROPERTY = {
   whatsappNumber: '+263774114599',
   waLink: 'https://wa.me/263774114599',
   startingPriceText: 'From US$20/night',
-  navigationLandmarks: 'Near KFC/Steers food courts, Mutare Road, Ruwa',
+  navigationLandmarks: 'Off Mutare Road, behind the KFC/Steers food courts, Ruwa',
 } as const;
 
 export const ACCOMMODATION = [

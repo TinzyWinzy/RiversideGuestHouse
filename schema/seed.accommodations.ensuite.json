@@ -1,1 +1,12 @@
-{"active":true,"amenities":["TBD - client to confirm"],"capacity":null,"currency":"USD","description":"TBD - client to confirm ensuite room description.","id":"ensuite-room","images":[],"name":"Ensuite Room","rate":30,"type":"ensuite"}
+{
+  "active": true,
+  "amenities": ["Wi-Fi", "Solar power", "Hot shower", "Fresh linen", "Parking", "En-suite bathroom"],
+  "capacity": null,
+  "currency": "USD",
+  "description": "More room, your own bathroom, the same unhurried quiet — warm wood ceiling and windows that look out on the garden.",
+  "id": "ensuite-room",
+  "images": [],
+  "name": "Ensuite Room",
+  "rate": 30,
+  "type": "ensuite"
+}

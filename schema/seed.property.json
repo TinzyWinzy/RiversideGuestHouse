@@ -1,1 +1,30 @@
-{"contactEmail":"TBD","contactPhone":"+263774114599","description":"Riverside Guest House, Ruwa. Peaceful, business-ready guesthouse. Client profile per PRD v1.2 section 3.","facilities":["High-speed Wi-Fi","Solar backup","Quiet workspace","Secure spacious parking","Fresh linen","Housekeeping","Hot showers","Borehole water","Braai area"],"location":{"addressText":"22418 Riverside Park, Ruwa Zimbabwe","dirUrl":"https://www.google.com/maps/dir/?api=1&destination=-17.876727,31.228801","lat":-17.876727,"lng":31.228801,"placeId":null,"searchUrl":"https://www.google.com/maps/search/?api=1&query=-17.876727,31.228801"},"longStayMessage":"TBD - discounts available for long stays, confirm with management.","name":"Riverside Guest House","navigationLandmarks":"Near KFC/Steers food courts, Mutare Road, Ruwa","socialLinks":{},"startingPriceText":"From US$20/night","whatsappNumber":"+263774114599"}
+{
+  "contactEmail": "TBD",
+  "contactPhone": "+263774114599",
+  "description": "Riverside is the house at the halfway point on the road between Harare and Mutare. Lights that stay on through load-shedding, water that never stops, secure parking, and a real person on WhatsApp to confirm your booking. The rate you are quoted is the rate you pay — nothing more, ever.",
+  "facilities": [
+    "High-speed Wi-Fi",
+    "Solar backup",
+    "Quiet workspace",
+    "Secure spacious parking",
+    "Fresh linen",
+    "Housekeeping",
+    "Hot showers",
+    "Borehole water",
+    "Braai area"
+  ],
+  "location": {
+    "addressText": "22418 Riverside Park, Ruwa Zimbabwe",
+    "dirUrl": "https://www.google.com/maps/dir/?api=1&destination=-17.876727,31.228801",
+    "lat": -17.876727,
+    "lng": 31.228801,
+    "placeId": null,
+    "searchUrl": "https://www.google.com/maps/search/?api=1&query=-17.876727,31.228801"
+  },
+  "longStayMessage": "Staying a season in Ruwa? Send your dates and we\u2019ll agree a rate that makes coming back easier.",
+  "name": "Riverside Guest House",
+  "navigationLandmarks": "Off Mutare Road, behind the KFC/Steers food courts, Ruwa",
+  "socialLinks": {},
+  "startingPriceText": "From US$20/night",
+  "whatsappNumber": "+263774114599"
+}

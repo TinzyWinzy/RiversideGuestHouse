@@ -9,9 +9,9 @@ const dist = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const base = process.env.SITE_URL ?? 'https://riverside.example';
 
 const routes = {
-  'index.html': { title: 'Riverside Guest House — Ruwa Accommodation from US$20/night', desc: 'Quiet business-ready guesthouse, 22418 Riverside Park Ruwa. Ordinary US$20, Ensuite US$30 per room/night.' },
-  'accommodation.html': { title: 'Rooms & Rates — Riverside Guest House Ruwa', desc: 'Ordinary Room US$20/night, Ensuite Room US$30/night. Per-room pricing, no hidden fees.' },
-  'location.html': { title: 'Location & Directions — Riverside Guest House, Ruwa', desc: '22418 Riverside Park, Ruwa. Near KFC/Steers, Mutare Road. Maps directions + landmark fallback.' },
+  'index.html': { title: 'Riverside Guest House — Ruwa, on the Harare–Mutare Road', desc: 'A family guesthouse on the Harare–Mutare road in Ruwa. Power that stays on, water that runs, secure parking, rooms from US$20/night. Enquire on WhatsApp — no hidden fees.' },
+  'accommodation.html': { title: 'Rooms & Rates — Riverside Guest House Ruwa', desc: 'Ordinary Room US$20/night, Ensuite Room US$30/night, per room. Warm wood-panelled rooms, solar backup, borehole water. Confirmed on WhatsApp.' },
+  'location.html': { title: 'Location & Directions — Riverside Guest House, Ruwa', desc: '22418 Riverside Park, Ruwa — off Mutare Road, behind the KFC/Steers food courts. Live map, directions and landmark fallback.' },
 };
 
 const jsonLd = `<script type="application/ld+json">${JSON.stringify({

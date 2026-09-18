@@ -3,6 +3,8 @@ import { useAccommodations } from '../lib/content';
 import { submitEnquiry, validateEnquiry } from '../lib/enquiry';
 import { enqueue, flushQueue, isRetryable, listPending, requestBackgroundFlush } from '../lib/queue';
 import { Notice } from './public';
+import { Button } from '../components/Button';
+import { CheckIcon, WhatsAppIcon } from '../components/icons';
 
 export function Booking() {
   const rooms = useAccommodations();
@@ -85,41 +87,168 @@ export function Booking() {
 
   return (
     <main>
-      <h1>Request accommodation</h1>
-      <p>Enquiries are requests, not instant reservations — management confirms availability (FR-019).</p>
-      <Notice error={rooms.error} />
-      <form onSubmit={onSubmit}>
-        <label>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-        <label>Phone (E.164)<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+263…" required /></label>
-        <label>Email (optional)<input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
-        <label>Room<select value={form.accommodationId} onChange={(e) => setForm({ ...form, accommodationId: e.target.value })}>
-          {rooms.data.map((r) => (
-            <option key={r.id} value={r.id}>{r.name} — US${r.rate}/night</option>
-          ))}
-        </select></label>
-        <label>Check-in<input type="date" value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value })} required /></label>
-        <label>Check-out<input type="date" value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} required /></label>
-        <label>Guests<input type="number" min={1} max={10} value={form.partySize} onChange={(e) => setForm({ ...form, partySize: Number(e.target.value) })} required /></label>
-        <label><input type="checkbox" checked={form.longStay} onChange={(e) => setForm({ ...form, longStay: e.target.checked })} /> Long stay?</label>
-        <label>Message<textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} /></label>
-        <button type="submit" disabled={busy}>{busy ? 'Sending…' : 'Send enquiry'}</button>
-      </form>
-      {error && <p role="alert">{error}</p>}
-      {status && <p>{status}</p>}
-      {success && (
-        <div className="success" role="status">
-          <h2>Enquiry received — ref {success.ref}</h2>
-          <p>{success.room} · {success.dates} · {form.partySize} guest{form.partySize === 1 ? '' : 's'}</p>
-          <p><strong>What happens next:</strong></p>
-          <ol>
-            <li>Now — tap below to send your enquiry on WhatsApp.</li>
-            <li>Within minutes — management confirms availability and pricing.</li>
-            <li>On arrival — show this chat at check-in. No hidden fees.</li>
-          </ol>
-          <p><a className="btn" href={success.whatsappUrl}>Continue to WhatsApp</a></p>
+      <div className="booking-wrapper" style={{ maxWidth: '640px', margin: '0 auto', paddingTop: '2rem' }}>
+        {/* ── Intro banner ── */}
+        <div className="booking-intro">
+          <p className="section-label" style={{ color: 'var(--gold-light)', marginTop: 0 }}>Reserve your stay</p>
+          <h1>Book Your Stay</h1>
+          <p>Tell us your dates and a person — not a machine — reads your enquiry and confirms your booking on WhatsApp. Direct, honest, no fine print.</p>
         </div>
-      )}
-      {queued > 0 && <p>{queued} enquir{queued === 1 ? 'y' : 'ies'} waiting to send.</p>}
+
+        <Notice error={rooms.error} />
+
+        {/* ── Form ── */}
+        <form onSubmit={onSubmit} aria-label="Accommodation enquiry form">
+          <fieldset className="booking-fieldset">
+            <legend>Contact details</legend>
+            <div className="form-row">
+              <label htmlFor="booking-name">
+                Your Name
+                <input
+                  id="booking-name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Full name"
+                  required
+                  autoComplete="name"
+                />
+              </label>
+              <label htmlFor="booking-phone">
+                Phone (WhatsApp)
+                <input
+                  id="booking-phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="+263…"
+                  required
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
+              </label>
+            </div>
+
+            <label htmlFor="booking-email">
+              Email <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional)</span>
+              <input
+                id="booking-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="your@email.com"
+                autoComplete="email"
+                inputMode="email"
+              />
+            </label>
+          </fieldset>
+
+          <fieldset className="booking-fieldset">
+            <legend>Stay details</legend>
+            <label htmlFor="booking-room">
+              Room
+              <select
+                id="booking-room"
+                value={form.accommodationId}
+                onChange={(e) => setForm({ ...form, accommodationId: e.target.value })}
+              >
+                {rooms.data.map((r) => (
+                  <option key={r.id} value={r.id}>{r.name} — US${r.rate}/night</option>
+                ))}
+              </select>
+            </label>
+
+            <div className="form-row">
+              <label htmlFor="booking-checkin">
+                Check-in Date
+                <input
+                  id="booking-checkin"
+                  type="date"
+                  value={form.checkIn}
+                  onChange={(e) => setForm({ ...form, checkIn: e.target.value })}
+                  required
+                />
+              </label>
+              <label htmlFor="booking-checkout">
+                Check-out Date
+                <input
+                  id="booking-checkout"
+                  type="date"
+                  value={form.checkOut}
+                  onChange={(e) => setForm({ ...form, checkOut: e.target.value })}
+                  required
+                />
+              </label>
+            </div>
+
+            <label htmlFor="booking-guests">
+              Number of Guests
+              <input
+                id="booking-guests"
+                type="number"
+                min={1}
+                max={10}
+                step={1}
+                value={form.partySize}
+                onChange={(e) => setForm({ ...form, partySize: Number(e.target.value) })}
+                required
+              />
+            </label>
+
+            <label className="checkbox-label" htmlFor="booking-longstay">
+              <input
+                id="booking-longstay"
+                type="checkbox"
+                checked={form.longStay}
+                onChange={(e) => setForm({ ...form, longStay: e.target.checked })}
+              />
+              I'm interested in a long stay (7+ nights)
+            </label>
+          </fieldset>
+
+          <fieldset className="booking-fieldset">
+            <legend>Anything else?</legend>
+            <label htmlFor="booking-message">
+              Message <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional)</span>
+              <textarea
+                id="booking-message"
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                placeholder="Any special requests, questions, or additional details…"
+              />
+            </label>
+          </fieldset>
+
+          <button type="submit" disabled={busy} id="booking-submit-btn">
+            {busy ? 'Sending…' : 'Send Enquiry →'}
+          </button>
+        </form>
+
+        {error && <p role="alert">{error}</p>}
+        {status && <p role="note">{status}</p>}
+
+        {success && (
+          <div className="success" role="status">
+            <h2 className="success-heading"><CheckIcon size={22} /> Enquiry received — ref {success.ref}</h2>
+            <p style={{ fontWeight: 600 }}>{success.room} · {success.dates} · {form.partySize} guest{form.partySize === 1 ? '' : 's'}</p>
+            <p><strong>What happens next:</strong></p>
+            <ol style={{ paddingLeft: '1.2rem', color: 'var(--muted)', fontSize: '0.93rem' }}>
+              <li>Now — tap below to send your enquiry on WhatsApp.</li>
+              <li>Within minutes — management confirms availability and pricing.</li>
+              <li>On arrival — show this chat at check-in. No hidden fees.</li>
+            </ol>
+            <p>
+              <Button href={success.whatsappUrl} external id="success-whatsapp-btn">
+                <WhatsAppIcon size={18} />
+                Continue to WhatsApp →
+              </Button>
+            </p>
+          </div>
+        )}
+
+        {queued > 0 && (
+          <p role="note">{queued} enquir{queued === 1 ? 'y' : 'ies'} waiting to send when you reconnect.</p>
+        )}
+      </div>
     </main>
   );
 }

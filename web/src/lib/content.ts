@@ -54,7 +54,6 @@ function mapProperty(raw: Record<string, unknown> | undefined): PropertyContent 
 
 const FALLBACK_PROPERTY_CONTENT: PropertyContent = {
   ...FALLBACK_PROPERTY,
-  description: '',
   facilities: [],
   longStayMessage: null,
   searchUrl: FALLBACK_PROPERTY.dirUrl,

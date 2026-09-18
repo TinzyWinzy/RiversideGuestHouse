@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 // MVP: plain Vite build + postbuild.mjs SSG-fallback (per-route HTML + meta/JSON-LD/sitemap).
@@ -16,5 +16,10 @@ export default defineConfig({
         },
       },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    css: false,
   },
 });

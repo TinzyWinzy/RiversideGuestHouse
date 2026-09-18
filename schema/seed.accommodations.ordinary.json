@@ -1,1 +1,12 @@
-{"active":true,"amenities":["TBD - client to confirm"],"capacity":null,"currency":"USD","description":"TBD - client to confirm ordinary room description.","id":"ordinary-room","images":[],"name":"Ordinary Room","rate":20,"type":"ordinary"}
+{
+  "active": true,
+  "amenities": ["Wi-Fi", "Solar power", "Hot shower", "Fresh linen", "Parking"],
+  "capacity": null,
+  "currency": "USD",
+  "description": "A quiet room with a warm wood-panelled ceiling, garden views and everything the road demands: a hot shower, Wi-Fi and a firm, restful bed.",
+  "id": "ordinary-room",
+  "images": [],
+  "name": "Ordinary Room",
+  "rate": 20,
+  "type": "ordinary"
+}

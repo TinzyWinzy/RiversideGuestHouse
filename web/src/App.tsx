@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Accommodation, Home, Location, NotFound, Privacy } from './pages/public';
 import { Navbar } from './components/Navbar';
 import { WhatsAppFloat } from './components/WhatsAppFloat';
+import { DropletIcon, LockIcon, MessageIcon, SunIcon } from './components/icons';
 
 const Booking = lazy(() => import('./pages/booking').then((m) => ({ default: m.Booking })));
 const Admin = lazy(() => import('./pages/admin').then((m) => ({ default: m.Admin })));
@@ -10,8 +11,11 @@ const Admin = lazy(() => import('./pages/admin').then((m) => ({ default: m.Admin
 export function App() {
   return (
     <BrowserRouter>
-      <div className="trustbar" role="note">
-        Solar backup · Borehole water · Secure parking · Book direct on WhatsApp
+      <div className="trustbar" role="region" aria-label="Property highlights">
+        <span className="trustbar-item"><SunIcon size={13} /> Solar Backup</span>
+        <span className="trustbar-item"><DropletIcon size={13} /> Borehole Water</span>
+        <span className="trustbar-item"><LockIcon size={13} /> Secure Parking</span>
+        <span className="trustbar-item"><MessageIcon size={13} /> Book Direct — No Hidden Fees</span>
       </div>
       <Navbar />
       <Suspense fallback={<main><p>Loading…</p></main>}>
